@@ -58,6 +58,7 @@ public:
                 default:
                     currentToken = consume();
                     std::cerr<<"[line 1] Error: Unexpected character: "<<currentToken<<std::endl;
+                    exit(65);
                     break;
             }
         }
