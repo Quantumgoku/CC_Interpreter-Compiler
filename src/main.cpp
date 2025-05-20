@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
         
         // Uncomment this block to pass the first stage
         // 
-        if (!file_contents.empty()) {
+        if (file_contents.empty()) {
             std::cerr << "Scanner not implemented" << std::endl;
             return 1;
         }
