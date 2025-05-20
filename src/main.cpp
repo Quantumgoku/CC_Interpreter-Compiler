@@ -63,6 +63,7 @@ public:
             }
         }
         std::cout << "EOF  null" << std::endl;
+        exit(65);
     }
 
 private:
