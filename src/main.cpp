@@ -55,6 +55,10 @@ public:
                     currentToken = consume();
                     std::cout<<"SEMICOLON "<<currentToken<<" null"<<std::endl;
                     break;
+                default:
+                    currentToken = consume();
+                    std::cerr<<"[line 1] Error: Unexpected character: "<<currentToken<<std::endl;
+                    break;
             }
         }
         std::cout << "EOF  null" << std::endl;
