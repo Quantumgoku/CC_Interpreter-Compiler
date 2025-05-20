@@ -6,6 +6,48 @@
 
 std::string read_file_contents(const std::string& filename);
 
+class Tokenizer{
+public:
+    Tokenizer(const std::string& input) : index(0), text(input) {}
+
+    void tokenize(){
+        while(index<text.length()){
+            char currentChar = peek();
+            char currentToken;
+            switch (currentChar){
+                case '(':
+                    currentToken = consume();
+                    std::cout<<"LEFT_PAREN "<<currentToken<<std::endl;
+                    break; 
+                case ')':
+                    currentToken = consume();
+                    std::cout<<"RIGHT_PAREN "<<currentToken<<std::endl;
+                    break;
+            }
+            
+        }
+
+        std::cout << "EOF  null" << std::endl;
+    }
+
+private:
+
+    char peek(){
+        if(index >= text.length()){
+            return '\0';
+        }
+        return text[index];
+    }
+
+    char consume(){
+        return text[index++];
+    }
+
+    int index;
+    std::string text;
+    std::string current_token;
+};
+
 int main(int argc, char *argv[]) {
     // Disable output buffering
     std::cout << std::unitbuf;
@@ -30,7 +72,8 @@ int main(int argc, char *argv[]) {
             std::cerr << "Scanner not implemented" << std::endl;
             return 1;
         }
-        std::cout << "EOF  null" << std::endl; // Placeholder, replace this line when implementing the scanner
+        Tokenizer tokenizer(file_contents);
+        tokenizer.tokenize();
         
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
