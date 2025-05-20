@@ -98,8 +98,6 @@ int main(int argc, char *argv[]) {
         
         // Uncomment this block to pass the first stage
         // 
-        std::cout << "Tokenizing file: " << argv[2] << std::endl;
-        std::cout << "File contents: " << file_contents << std::endl;
         if (file_contents.empty()) {
             std::cerr << "Scanner not implemented" << std::endl;
             return 1;
