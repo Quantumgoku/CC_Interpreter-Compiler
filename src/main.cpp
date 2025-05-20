@@ -11,6 +11,7 @@ public:
     Tokenizer(const std::string& input) : index(0), text(input) {}
 
     void tokenize(){
+        bool hitDef=false;
         while(index<text.length()){
             char currentChar = peek();
             char currentToken;
@@ -56,14 +57,16 @@ public:
                     std::cout<<"SEMICOLON "<<currentToken<<" null"<<std::endl;
                     break;
                 default:
+                    hitDef=true;
                     currentToken = consume();
                     std::cerr<<"[line 1] Error: Unexpected character: "<<currentToken<<std::endl;
-                    exit(65);
                     break;
             }
         }
         std::cout << "EOF  null" << std::endl;
-        exit(65);
+        if(hitDef){
+            exit(65);
+        }
     }
 
 private:
