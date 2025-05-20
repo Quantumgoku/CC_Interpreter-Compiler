@@ -56,9 +56,7 @@ public:
                     std::cout<<"SEMICOLON "<<currentToken<<std::endl;
                     break;
             }
-            
         }
-
         std::cout << "EOF  null" << std::endl;
     }
 
