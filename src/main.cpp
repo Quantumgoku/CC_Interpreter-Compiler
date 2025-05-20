@@ -23,6 +23,38 @@ public:
                     currentToken = consume();
                     std::cout<<"RIGHT_PAREN "<<currentToken<<std::endl;
                     break;
+                case '{':
+                    currentToken = consume();
+                    std::cout<<"LEFT_BRACE "<<currentToken<<std::endl;
+                    break;
+                case '}':
+                    currentToken = consume();
+                    std::cout<<"RIGHT_BRACE "<<currentToken<<std::endl;
+                    break;
+                case ',':
+                    currentToken = consume();
+                    std::cout<<"COMMA "<<currentToken<<std::endl;
+                    break;
+                case '.':
+                    currentToken = consume();
+                    std::cout<<"DOT "<<currentToken<<std::endl;
+                    break;
+                case '+':
+                    currentToken = consume();
+                    std::cout<<"PLUS "<<currentToken<<std::endl;
+                    break;
+                case '-':
+                    currentToken = consume();
+                    std::cout<<"MINUS "<<currentToken<<std::endl;
+                    break;
+                case '*':
+                    currentToken = consume();
+                    std::cout<<"STAR "<<currentToken<<std::endl;
+                    break;
+                case ';':
+                    currentToken = consume();
+                    std::cout<<"SEMICOLON "<<currentToken<<std::endl;
+                    break;
             }
             
         }
