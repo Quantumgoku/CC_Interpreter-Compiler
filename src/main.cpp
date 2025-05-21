@@ -53,6 +53,14 @@ public:
                     currentToken = consume();
                     std::cout<<"STAR "<<currentToken<<" null"<<std::endl;
                     break;
+                case '/':
+                    currentToken = consume();
+                    if(peek()=='/'){
+                        while(peek()!='\n' && index<text.length()) consume();
+                    }else{
+                        std::cout<<"SLASH "<<currentToken<<" null"<<std::endl;
+                    }
+                    break;
                 case ';':
                     currentToken = consume();
                     std::cout<<"SEMICOLON "<<currentToken<<" null"<<std::endl;
