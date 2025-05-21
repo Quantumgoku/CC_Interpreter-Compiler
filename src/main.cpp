@@ -116,7 +116,6 @@ public:
                     break;
                 case '\n':
                     currentToken = consume();
-                    std::cout<<"NEWLINE "<<currentToken<<" null"<<std::endl;
                     break;
                 default:
                     hitDef=true;
