@@ -109,6 +109,15 @@ public:
                     }
                     combineToken="";
                     break;
+                case ' ':
+                case '\r':
+                case '\t':
+                    currentToken = consume();
+                    break;
+                case '\n':
+                    currentToken = consume();
+                    std::cout<<"NEWLINE "<<currentToken<<" null"<<std::endl;
+                    break;
                 default:
                     hitDef=true;
                     currentToken = consume();
