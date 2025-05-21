@@ -12,6 +12,7 @@ public:
 
     void tokenize(){
         bool hitDef=false;
+        std::string combineToken="";
         while(index<text.length()){
             char currentChar = peek();
             char currentToken;
@@ -55,6 +56,50 @@ public:
                 case ';':
                     currentToken = consume();
                     std::cout<<"SEMICOLON "<<currentToken<<" null"<<std::endl;
+                    break;
+                case '!':
+                    currentToken = consume();
+                    if(peek()=='='){
+                        combineToken+=currentToken;
+                        combineToken+=consume();
+                        std::cout<<"BANG_EQUAL "<<combineToken<<" null"<<std::endl;
+                    }else{
+                        std::cout<<"BANG "<<currentToken<<" null"<<std::endl;
+                    }
+                    combineToken="";
+                    break;
+                case '=':
+                    currentToken = consume();
+                    if(peek()=='='){
+                        combineToken+=currentToken;
+                        combineToken+=consume();
+                        std::cout<<"EQUAL_EQUAL "<<combineToken<<" null"<<std::endl;
+                    }else{
+                        std::cout<<"EQUAL "<<currentToken<<" null"<<std::endl;
+                    }
+                    combineToken="";
+                    break;
+                case '<':
+                    currentToken = consume();
+                    if(peek()=='='){
+                        combineToken+=currentToken;
+                        combineToken+=consume();
+                        std::cout<<"LESS_EQUAL "<<combineToken<<" null"<<std::endl;
+                    }else{
+                        std::cout<<"LESS "<<currentToken<<" null"<<std::endl;
+                    }
+                    combineToken="";
+                    break;
+                case '>':
+                    currentToken = consume();
+                    if(peek()=='='){
+                        combineToken+=currentToken;
+                        combineToken+=consume();
+                        std::cout<<"GREATER_EQUAL "<<combineToken<<" null"<<std::endl;
+                    }else{
+                        std::cout<<"GREATER "<<currentToken<<" null"<<std::endl;
+                    }
+                    combineToken="";
                     break;
                 default:
                     hitDef=true;
