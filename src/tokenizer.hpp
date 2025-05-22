@@ -139,9 +139,13 @@ public:
                     line++;
                     break;
                 default:
-                    hitDef=true;
                     currentToken = consume();
-                    std::cerr<<"[line "<<line<<"] Error: Unexpected character: "<<currentToken<<std::endl;
+                    if(currentToken>='0' && currentToken<='9'){
+                        number();
+                    }else{
+                        hitDef=true;
+                        std::cerr<<"[line "<<line<<"] Error: Unexpected character: "<<currentToken<<std::endl;
+                    }
                     break;
             }
         }
@@ -155,8 +159,8 @@ public:
 
 private:
 
-    char peek(){
-        if(current >= text.length()){
+    char peek(int index=0){
+        if(current + index >= text.length()){
             return '\0';
         }
         return text[current];
@@ -173,6 +177,21 @@ private:
     void addToken(TokenType type, literal lit){
         std::string lexeme = text.substr(start, current - start);
         tokens.push_back(Token(type,lexeme,lit,line));
+    }
+
+    void number(){
+        std::string buff="";
+        while(isdigit(peek())){
+            buff+=consume();
+        }
+        if(peek() == '.' && isdigit(peek(1))){
+            buff+=consume();
+            while(isdigit(peek())){
+                buff+=consume();
+            }
+        }
+        std::cout<<"NUMBER "<<buff<<" "<<buff<<std::endl;
+        addToken(TokenType::NUMBER);
     }
 
     bool isAtEnd(){
