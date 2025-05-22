@@ -39,7 +39,6 @@ public:
                 case '(':
                     currentToken = consume();
                     std::cout<<"LEFT_PAREN "<<currentToken<<" null"<<std::endl;
-                    addToken(TokenType::LEFT_PAREN);
                     break;
                 case ')':
                     currentToken = consume();
