@@ -195,7 +195,9 @@ private:
         addToken(TokenType::NUMBER, literal(value));
         // Print .0 for integers, print as-is for floats
         std::string minimal;
-        {
+        if(buff.find('.') != std::string::npos){
+            minimal = buff+".0";
+        }else{
             std::ostringstream oss;
             oss << value;
             minimal = oss.str();
