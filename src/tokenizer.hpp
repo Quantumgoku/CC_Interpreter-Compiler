@@ -184,9 +184,7 @@ private:
         while(isdigit(peek())){
             buff+=consume();
         }
-        bool isFloat=false;
         if(peek()=='.' && isdigit(peek(1))){
-            isFloat=true;
             buff+=consume();
             while(isdigit(peek())){
                 buff+=consume();
@@ -194,11 +192,7 @@ private:
         }
         double value = std::stod(buff);
         addToken(TokenType::NUMBER, literal(value));
-        if(!isFloat && buff.find('.')== std::string::npos){
-            std::cout<<"NUMBER "<<buff<<" "<<buff<<".0"<<std::endl;
-        }else{
-            std::cout<<"NUMBER "<<buff<<" "<<buff<<std::endl;
-        }
+        std::cout << "NUMBER " << buff << " " << buff << std::endl;
     }
 
     bool isAtEnd(){
