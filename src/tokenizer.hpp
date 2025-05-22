@@ -34,7 +34,7 @@ public:
                     }
                     consume();
                     addToken(TokenType::STRING, buff);
-                    std::cout<<"STRING \""<<buff<<"\" null"<<std::endl;
+                    std::cout<<"STRING \""<<buff<<"\" "<<buff<<std::endl;
                     buff="";
                 case '(':
                     currentToken = consume();
