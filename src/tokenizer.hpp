@@ -5,6 +5,7 @@
 #include<unordered_map>
 #include<map>
 #include "token.hpp"
+#include<vector>
 
 class Tokenizer{
 public:
