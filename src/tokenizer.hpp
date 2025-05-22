@@ -137,7 +137,7 @@ public:
                     line++;
                     break;
                 default:
-                    if(peek()>='0' && peek()<='9'){
+                    if(currentChar>='0' && currentChar<='9'){
                         current_token=consume();
                         number();
                     }else{
