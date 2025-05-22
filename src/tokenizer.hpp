@@ -14,13 +14,32 @@ public:
     void tokenize(){
         bool hitDef=false;
         std::string combineToken="";
+        std::string buff="";
         while(current<text.length()){
             char currentChar = peek();
             char currentToken;
             switch (currentChar){
+                case '"':
+                    consume();
+                    while(peek()!='"' && isAtEnd()){
+                        if(peek()=='\n'){
+                            line++;
+                        }
+                        buff+=consume();
+                    }
+                    if(isAtEnd()){
+                        std::cerr<<"[line "<<line<<"] Error: Unterminated string."<<std::endl;
+                        hitDef=true;
+                        break;
+                    }
+                    consume();
+                    addToken(TokenType::STRING, buff);
+                    std::cout<<"STRING "<<buff<<" null"<<std::endl;
+                    buff="";
                 case '(':
                     currentToken = consume();
                     std::cout<<"LEFT_PAREN "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::LEFT_PAREN);
                     break;
                 case ')':
                     currentToken = consume();
