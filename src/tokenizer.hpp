@@ -139,6 +139,7 @@ public:
                     line++;
                     break;
                 default:
+                    current_token = consume();
                     if(currentToken>='0' && currentToken<='9'){
                         number();
                     }else{
@@ -180,6 +181,7 @@ private:
 
     void number(){
         std::string buff="";
+        buff+=current_token;
         while(isdigit(peek())){
             buff+=consume();
         }
