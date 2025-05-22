@@ -139,7 +139,6 @@ public:
                     line++;
                     break;
                 default:
-                    currentToken = consume();
                     if(currentToken>='0' && currentToken<='9'){
                         number();
                     }else{
