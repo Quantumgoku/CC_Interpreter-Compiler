@@ -21,7 +21,7 @@ public:
             switch (currentChar){
                 case '"':
                     consume();
-                    while(peek()!='"' && isAtEnd()){
+                    while(peek()!='"' && !isAtEnd()){
                         if(peek()=='\n'){
                             line++;
                         }
