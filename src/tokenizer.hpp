@@ -185,14 +185,22 @@ private:
         while(isdigit(peek())){
             buff+=consume();
         }
-        if(peek() == '.' && isdigit(peek(1))){
+        bool isFloat=false;
+        if(peek()=='.' && isdigit(peek(1))){
+            isFloat=true;
             buff+=consume();
             while(isdigit(peek())){
                 buff+=consume();
             }
         }
-        std::cout<<"NUMBER "<<buff<<" "<<buff<<std::endl;
-        addToken(TokenType::NUMBER);
+        double value = std::stod(buff);
+        if(!isFloat && buff.find('.')==std::string::npos){
+            addToken(TokenType::NUMBER, literal(value));
+            std::cout<<"NUMBER "<<buff<<" "<<value<<std::endl;
+        }else{
+            addToken(TokenType::NUMBER, literal(value));
+            std::cout<<"NUMBER "<<buff<<" "<<value<<std::endl;
+        }
     }
 
     bool isAtEnd(){
