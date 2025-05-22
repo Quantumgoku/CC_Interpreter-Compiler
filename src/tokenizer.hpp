@@ -137,13 +137,13 @@ public:
                     line++;
                     break;
                 default:
-                    char consumed = consume();
-                    if(consumed>='0' && consumed<='9'){
-                        current_token=consumed;
+                    if(peek()>='0' && peek()<='9'){
+                        current_token=consume();
                         number();
                     }else{
+                        char consumed=consume();
                         hitDef=true;
-                        std::cerr<<"[line "<<line<<"] Error: Unexpected character."<<std::endl;
+                        std::cerr<<"[line "<<line<<"] Error: Unexpected character."<<consumed<<std::endl;
                     }
                     break;
             }
