@@ -139,12 +139,13 @@ public:
                     line++;
                     break;
                 default:
-                    current_token = consume();
-                    if(currentToken>='0' && currentToken<='9'){
+                    char consumed = consume();
+                    if(consumed>='0' && consumed<='9'){
+                        current_token=consumed;
                         number();
                     }else{
                         hitDef=true;
-                        std::cerr<<"[line "<<line<<"] Error: Unexpected character: "<<currentToken<<std::endl;
+                        std::cerr<<"[line "<<line<<"] Error: Unexpected character."<<std::endl;
                     }
                     break;
             }
