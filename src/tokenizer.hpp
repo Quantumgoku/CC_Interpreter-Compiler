@@ -36,6 +36,7 @@ public:
                     addToken(TokenType::STRING, buff);
                     std::cout<<"STRING \""<<buff<<"\" "<<buff<<std::endl;
                     buff="";
+                    break;
                 case '(':
                     currentToken = consume();
                     std::cout<<"LEFT_PAREN "<<currentToken<<" null"<<std::endl;
