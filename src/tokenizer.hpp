@@ -162,7 +162,7 @@ private:
         if(current + index >= text.length()){
             return '\0';
         }
-        return text[current];
+        return text[current+index];
     }
 
     char consume(){
