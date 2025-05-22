@@ -179,20 +179,26 @@ private:
     }
 
     void number(){
-        std::string buff="";
-        buff+=current_token;
+        std::string buff = "";
+        buff += current_token;
         while(isdigit(peek())){
-            buff+=consume();
+            buff += consume();
         }
-        if(peek()=='.' && isdigit(peek(1))){
-            buff+=consume();
+        // Check for fractional part
+        if(peek() == '.' && isdigit(peek(1))){
+            buff += consume();
             while(isdigit(peek())){
-                buff+=consume();
+                buff += consume();
             }
         }
         double value = std::stod(buff);
         addToken(TokenType::NUMBER, literal(value));
-        std::cout << "NUMBER " << buff << " " << buff << std::endl;
+        // Print .0 for integers, print as-is for floats
+        if (buff.find('.') == std::string::npos) {
+            std::cout << "NUMBER " << buff << " " << buff << ".0" << std::endl;
+        } else {
+            std::cout << "NUMBER " << buff << " " << buff << std::endl;
+        }
     }
 
     bool isAtEnd(){
