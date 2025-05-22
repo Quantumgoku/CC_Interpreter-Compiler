@@ -194,11 +194,13 @@ private:
         double value = std::stod(buff);
         addToken(TokenType::NUMBER, literal(value));
         // Print .0 for integers, print as-is for floats
-        if (buff.find('.') == std::string::npos) {
-            std::cout << "NUMBER " << buff << " " << buff << ".0" << std::endl;
-        } else {
-            std::cout << "NUMBER " << buff << " " << buff << std::endl;
+        std::string minimal;
+        {
+            std::ostringstream oss;
+            oss << value;
+            minimal = oss.str();
         }
+        std::cout << "NUMBER " << buff << " " << minimal << std::endl;
     }
 
     bool isAtEnd(){
