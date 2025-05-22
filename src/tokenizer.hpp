@@ -2,7 +2,6 @@
 #include<sstream>
 #include<string>
 #include<fstream>
-#include<iomanip>
 #include "token.hpp"
 #include<vector>
 
@@ -194,12 +193,11 @@ private:
             }
         }
         double value = std::stod(buff);
-        if(!isFloat && buff.find('.')==std::string::npos){
-            addToken(TokenType::NUMBER, literal(value));
-            std::cout<<"NUMBER "<<buff<<" "<<value<<std::endl;
+        addToken(TokenType::NUMBER, literal(value));
+        if(!isFloat && buff.find('.')== std::string::npos){
+            std::cout<<"NUMBER "<<buff<<" "<<buff<<".0"<<std::endl;
         }else{
-            addToken(TokenType::NUMBER, literal(value));
-            std::cout<<"NUMBER "<<buff<<" "<<value<<std::endl;
+            std::cout<<"NUMBER "<<buff<<" "<<buff<<std::endl;
         }
     }
 
