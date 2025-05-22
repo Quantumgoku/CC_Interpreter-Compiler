@@ -175,7 +175,7 @@ private:
     }
 
     bool isAtEnd(){
-        return current>=text.length();
+        return current>text.length();
     }
 
     int start=0;
