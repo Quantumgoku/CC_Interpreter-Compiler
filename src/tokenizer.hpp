@@ -219,7 +219,7 @@ private:
             double value = std::stod(buff);
             std::ostringstream oss1, oss2;
             oss1 << value;  // no fixed formatting — print as is
-            oss2 << std::fixed << std::setprecision(10) << value;  // one decimal place
+            oss2 << std::fixed << std::setprecision(4) << value;  // one decimal place
             std::cout << "NUMBER " << oss1.str() << " " << oss2.str() << std::endl;
         } else {
             int intValue = std::stoi(buff);
