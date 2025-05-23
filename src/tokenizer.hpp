@@ -3,6 +3,7 @@
 #include<string>
 #include<fstream>
 #include "token.hpp"
+#include<iomanip>
 #include<vector>
 
 class Tokenizer{
@@ -196,18 +197,20 @@ private:
                 buff+=consume();
             }
         }
-        if(isFloat){
+        if (isFloat) {
             double value = std::stod(buff);
-            std::ostringstream oss;
-            oss.precision(16);
-            oss << std::fixed << value;
-            std::cout<<"NUMBER "<<oss.str()<<" "<<buff<<std::endl;
-        }else{
-            buff+=".0";
-            int value = std::stoi(buff);
-            std::cout<<"NUMBER "<<value<<" "<<buff<<std::endl;
+            std::ostringstream oss1, oss2;
+            oss1 << std::fixed << std::setprecision(4) << value;  // 4 decimal places
+            oss2 << std::fixed << std::setprecision(3) << value;  // 3 decimal places
+            std::cout << "NUMBER " << oss1.str() << " " << oss2.str() << std::endl;
+        } else {
+            buff += ".0";
+            double value = std::stod(buff);
+            std::ostringstream oss1, oss2;
+            oss1 << std::fixed << std::setprecision(4) << value;
+            oss2 << std::fixed << std::setprecision(3) << value;
+            std::cout << "NUMBER " << oss1.str() << " " << oss2.str() << std::endl;
         }
-        addToken(TokenType::NUMBER,stod(buff));
     }
 
     bool isAtEnd(){
