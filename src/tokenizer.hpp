@@ -217,8 +217,10 @@ private:
 
         if (isFloat) {
             double value = std::stod(buff);
-            std::cout<<"NUMBER "<<buff<<" "<<buff<<std::endl;
-        } else {
+            std::ostringstream oss;
+            oss << value;  // prints shortest form like 95.0, 4223.471, etc.
+            std::cout << "NUMBER " << buff << " " << oss.str() << std::endl;
+        }else {
             int intValue = std::stoi(buff);
             std::ostringstream oss2;
             oss2 << std::fixed << std::setprecision(1) << static_cast<double>(intValue);
