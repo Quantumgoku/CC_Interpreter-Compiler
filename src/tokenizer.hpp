@@ -148,7 +148,7 @@ public:
                         std::cout << "DOT . null" << std::endl;
                         number(); // consume the rest as number
                     } else {
-                        std::cerr << "[line " << line << "] Error: Unexpected character '" << currentChar  << std::endl;
+                        std::cerr << "[line " << line << "] Error: Unexpected character: " << currentChar  << std::endl;
                         hitDef = true;
                         consume(); // advance to avoid infinite loop
                     }
