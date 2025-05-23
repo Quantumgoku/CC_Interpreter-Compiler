@@ -11,7 +11,6 @@ public:
 
     void tokenize(){
         bool hitDef=false;
-        std::string combineToken="";
         std::string buff="";
         while(current<text.length()){
             char currentChar = peek();
@@ -86,46 +85,50 @@ public:
                 case '!':
                     currentToken = consume();
                     if(peek()=='='){
-                        combineToken+=currentToken;
-                        combineToken+=consume();
-                        std::cout<<"BANG_EQUAL "<<combineToken<<" null"<<std::endl;
+                        buff="";
+                        buff+=currentToken;
+                        buff+=consume();
+                        std::cout<<"BANG_EQUAL "<<buff<<" null"<<std::endl;
                     }else{
                         std::cout<<"BANG "<<currentToken<<" null"<<std::endl;
                     }
-                    combineToken="";
+                    buff="";
                     break;
                 case '=':
                     currentToken = consume();
                     if(peek()=='='){
-                        combineToken+=currentToken;
-                        combineToken+=consume();
-                        std::cout<<"EQUAL_EQUAL "<<combineToken<<" null"<<std::endl;
+                        buff="";
+                        buff+=currentToken;
+                        buff+=consume();
+                        std::cout<<"EQUAL_EQUAL "<<buff<<" null"<<std::endl;
                     }else{
                         std::cout<<"EQUAL "<<currentToken<<" null"<<std::endl;
                     }
-                    combineToken="";
+                    buff="";
                     break;
                 case '<':
                     currentToken = consume();
                     if(peek()=='='){
-                        combineToken+=currentToken;
-                        combineToken+=consume();
-                        std::cout<<"LESS_EQUAL "<<combineToken<<" null"<<std::endl;
+                        buff="";
+                        buff+=currentToken;
+                        buff+=consume();
+                        std::cout<<"LESS_EQUAL "<<buff<<" null"<<std::endl;
                     }else{
                         std::cout<<"LESS "<<currentToken<<" null"<<std::endl;
                     }
-                    combineToken="";
+                    buff="";
                     break;
                 case '>':
                     currentToken = consume();
                     if(peek()=='='){
-                        combineToken+=currentToken;
-                        combineToken+=consume();
-                        std::cout<<"GREATER_EQUAL "<<combineToken<<" null"<<std::endl;
+                        buff="";
+                        buff+=currentToken;
+                        buff+=consume();
+                        std::cout<<"GREATER_EQUAL "<<buff<<" null"<<std::endl;
                     }else{
                         std::cout<<"GREATER "<<currentToken<<" null"<<std::endl;
                     }
-                    combineToken="";
+                    buff="";
                     break;
                 case ' ':
                 case '\r':
@@ -137,13 +140,11 @@ public:
                     line++;
                     break;
                 default:
-                    if(currentChar>='0' && currentChar<='9'){
-                        current_token=consume();
+                    if(isDigit(currentChar)){
                         number();
                     }else{
-                        char consumed=consume();
+                        std::cerr<<"[line "<<line<<"] Error: Unexpected character."<<std::endl;
                         hitDef=true;
-                        std::cerr<<"[line "<<line<<"] Error: Unexpected character."<<consumed<<std::endl;
                     }
                     break;
             }
@@ -173,36 +174,28 @@ private:
         addToken(type, literal());
     }
 
+    bool isDigit(char c){
+        return c>='0' && c<='9';
+    }
+
     void addToken(TokenType type, literal lit){
         std::string lexeme = text.substr(start, current - start);
         tokens.push_back(Token(type,lexeme,lit,line));
     }
 
     void number(){
-        std::string buff = "";
-        buff += current_token;
-        while(isdigit(peek())){
-            buff += consume();
+        while(isDigit(peek())){
+            consume();
         }
-        // Check for fractional part
-        if(peek() == '.' && isdigit(peek(1))){
-            buff += consume();
-            while(isdigit(peek())){
-                buff += consume();
+        if(peek() == '.' && isDigit(peek(1))){
+            consume();
+            while(isDigit(peek())){
+                consume();
             }
         }
-        double value = std::stod(buff);
-        addToken(TokenType::NUMBER, literal(value));
-        // Print .0 for integers, print as-is for floats
-        std::string minimal;
-        if(buff.find('.') != std::string::npos){
-            minimal = buff+".0";
-        }else{
-            std::ostringstream oss;
-            oss << value;
-            minimal = oss.str();
-        }
-        std::cout << "NUMBER " << buff << " " << minimal << std::endl;
+        std::string num = text.substr(start, current - start);
+        double value = std::stod(num);
+        addToken(TokenType::NUMBER, value);
     }
 
     bool isAtEnd(){
