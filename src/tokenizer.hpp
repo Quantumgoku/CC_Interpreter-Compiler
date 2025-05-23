@@ -224,7 +224,7 @@ private:
         } else {
             int intValue = std::stoi(buff);
             std::ostringstream oss2;
-            oss2 << std::fixed << std::setprecision(10) << static_cast<double>(intValue);
+            oss2 << std::fixed << std::setprecision(1) << static_cast<double>(intValue);
             std::cout << "NUMBER " << intValue << " " << oss2.str() << std::endl;
         }
     }
