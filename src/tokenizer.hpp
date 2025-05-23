@@ -141,11 +141,16 @@ public:
                     line++;
                     break;
                 default:
-                    if(isDigit(currentChar)){
+                    if (isDigit(currentChar)) {
                         number();
-                    }else{
-                        std::cerr<<"[line "<<line<<"] Error: Unexpected character."<<std::endl;
-                        hitDef=true;
+                    } else if (currentChar == '.' && isDigit(peek(1))) {
+                        consume(); // consume the dot
+                        std::cout << "DOT . null" << std::endl;
+                        number(); // consume the rest as number
+                    } else {
+                        std::cerr << "[line " << line << "] Error: Unexpected character '" << currentChar << "'." << std::endl;
+                        hitDef = true;
+                        consume(); // advance to avoid infinite loop
                     }
                     break;
             }
@@ -184,31 +189,45 @@ private:
         tokens.push_back(Token(type,lexeme,lit,line));
     }
 
-    void number(){
-        std::string buff="";
-        bool isFloat=false;
-        while(isDigit(peek())){
-            buff+=consume();
+    void number() {
+        std::string buff = "";
+        bool isFloat = false;
+
+        while (isDigit(peek())) {
+            buff += consume();
         }
-        if(peek() == '.' && isDigit(peek(1))){
-            isFloat=true;
-            buff+=consume();
-            while(isDigit(peek())){
-                buff+=consume();
+
+        // Handle case like "123." (trailing dot but not float)
+        if (peek() == '.' && !isDigit(peek(1))) {
+            double value = std::stod(buff);
+            std::cout << "NUMBER " << buff << " " << buff << ".0" << std::endl;
+            std::cout << "DOT . null" << std::endl;
+            consume();
+            return;
+        }
+
+        // Handle float like "123.456"
+        if (peek() == '.' && isDigit(peek(1))) {
+            isFloat = true;
+            buff += consume(); // consume the dot
+            while (isDigit(peek())) {
+                buff += consume();
             }
         }
-        if (isFloat) {
-            double value = std::stod(buff);
-            std::ostringstream oss1, oss2;
-            oss1 << std::fixed << std::setprecision(4) << value;  // 4 decimal places
-            oss2 << std::fixed << std::setprecision(3) << value;  // 3 decimal places
-            std::cout << "NUMBER " << oss1.str() << " " << oss2.str() << std::endl;
-        } else {
-            buff += ".0";
-            double value = std::stod(buff);
-            std::cout << "NUMBER " << value << " " << buff << std::endl;
-        }
+
+        double value = std::stod(buff);
+        std::ostringstream oss1, oss2;
+        oss1 << std::fixed << std::setprecision(4) << value;
+        oss2 << std::fixed << std::setprecision(3) << value;
+
+        std::string pretty = oss2.str();
+        // Clean trailing zeros
+        pretty.erase(pretty.find_last_not_of('0') + 1);
+        if (pretty.back() == '.') pretty.pop_back();
+
+        std::cout << "NUMBER " << oss1.str() << " " << pretty << std::endl;
     }
+
 
     bool isAtEnd(){
         return current>text.length();
