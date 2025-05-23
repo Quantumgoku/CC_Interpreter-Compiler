@@ -195,6 +195,10 @@ private:
         }
         std::string num = text.substr(start, current - start);
         double value = std::stod(num);
+        std::string lexeme = text.substr(start, current - start);
+        std::cout<<"NUMBER "<<lexeme<<" "<<value<<std::endl;
+        literal value;
+        value = std::stod(num);
         addToken(TokenType::NUMBER, value);
     }
 
