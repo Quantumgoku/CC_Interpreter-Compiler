@@ -215,17 +215,18 @@ private:
             }
         }
 
-        double value = std::stod(buff);
-        std::ostringstream oss1, oss2;
-        oss1 << std::fixed << std::setprecision(4) << value;
-        oss2 << std::fixed << std::setprecision(3) << value;
-
-        std::string pretty = oss2.str();
-        // Clean trailing zeros
-        pretty.erase(pretty.find_last_not_of('0') + 1);
-        if (pretty.back() == '.') pretty.pop_back();
-
-        std::cout << "NUMBER " << oss1.str() << " " << pretty << std::endl;
+        if (isFloat) {
+            double value = std::stod(buff);
+            std::ostringstream oss1, oss2;
+            oss1 << value;  // no fixed formatting — print as is
+            oss2 << std::fixed << std::setprecision(1) << value;  // one decimal place
+            std::cout << "NUMBER " << oss1.str() << " " << oss2.str() << std::endl;
+        } else {
+            int intValue = std::stoi(buff);
+            std::ostringstream oss2;
+            oss2 << std::fixed << std::setprecision(1) << static_cast<double>(intValue);
+            std::cout << "NUMBER " << intValue << " " << oss2.str() << std::endl;
+        }
     }
 
 
