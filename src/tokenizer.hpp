@@ -206,10 +206,7 @@ private:
         } else {
             buff += ".0";
             double value = std::stod(buff);
-            std::ostringstream oss1, oss2;
-            oss1 << std::fixed << std::setprecision(4) << value;
-            oss2 << std::fixed << std::setprecision(3) << value;
-            std::cout << "NUMBER " << oss1.str() << " " << oss2.str() << std::endl;
+            std::cout << "NUMBER " << buff << " " << value << std::endl;
         }
     }
 
