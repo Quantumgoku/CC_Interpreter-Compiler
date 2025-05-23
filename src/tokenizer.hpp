@@ -198,7 +198,10 @@ private:
         }
         if(isFloat){
             double value = std::stod(buff);
-            std::cout<<"NUMBER "<<value<<" "<<buff<<std::endl;
+            std::ostringstream oss;
+            oss.precision(16);
+            oss << std::fixed << value;
+            std::cout<<"NUMBER "<<oss.str()<<" "<<buff<<std::endl;
         }else{
             buff+=".0";
             int value = std::stoi(buff);
