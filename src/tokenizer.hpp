@@ -217,10 +217,7 @@ private:
 
         if (isFloat) {
             double value = std::stod(buff);
-            std::ostringstream oss1, oss2;
-            oss1 << buff;  // print the original string as-is
-            oss2 << std::fixed << std::setprecision(3) << value;  // 3 decimal places
-            std::cout << "NUMBER " << oss1.str() << " " << oss2.str() << std::endl;
+            std::cout<<"NUMBER "<<buff<<" "<<buff<<std::endl;
         } else {
             int intValue = std::stoi(buff);
             std::ostringstream oss2;
