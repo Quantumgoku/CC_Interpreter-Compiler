@@ -184,22 +184,27 @@ private:
     }
 
     void number(){
+        std::string buff="";
+        bool isFloat=false;
         while(isDigit(peek())){
-            consume();
+            buff+=consume();
         }
         if(peek() == '.' && isDigit(peek(1))){
-            consume();
+            isFloat=true;
+            buff+=consume();
             while(isDigit(peek())){
-                consume();
+                buff+=consume();
             }
         }
-        std::string num = text.substr(start, current - start);
-        double value = std::stod(num);
-        std::string lexeme = text.substr(start, current - start);
-        std::cout<<"NUMBER "<<lexeme<<" "<<value<<std::endl;
-        literal value1;
-        value1 = std::stod(num);
-        addToken(TokenType::NUMBER, value1);
+        if(isFloat){
+            double value = std::stod(buff);
+            std::cout<<"NUMBER "<<value<<" "<<buff<<std::endl;
+        }else{
+            buff+=".0";
+            int value = std::stoi(buff);
+            std::cout<<"NUMBER "<<value<<" "<<buff<<std::endl;
+        }
+        addToken(TokenType::NUMBER,stod(buff));
     }
 
     bool isAtEnd(){
