@@ -219,12 +219,12 @@ private:
             double value = std::stod(buff);
             std::ostringstream oss1, oss2;
             oss1 << value;  // no fixed formatting — print as is
-            oss2 << std::fixed << std::setprecision(1) << value;  // one decimal place
+            oss2 << std::fixed << std::setprecision(10) << value;  // one decimal place
             std::cout << "NUMBER " << oss1.str() << " " << oss2.str() << std::endl;
         } else {
             int intValue = std::stoi(buff);
             std::ostringstream oss2;
-            oss2 << std::fixed << std::setprecision(1) << static_cast<double>(intValue);
+            oss2 << std::fixed << std::setprecision(10) << static_cast<double>(intValue);
             std::cout << "NUMBER " << intValue << " " << oss2.str() << std::endl;
         }
     }
