@@ -189,6 +189,28 @@ private:
         tokens.push_back(Token(type,lexeme,lit,line));
     }
 
+    std::string normalizeNumberLiteral(const std::string& numStr) {
+        size_t dotPos = numStr.find('.');
+        if (dotPos == std::string::npos) {
+            // No decimal point, add ".0"
+            return numStr + ".0";
+        }
+
+        // Start from the end and remove trailing zeros
+        size_t endPos = numStr.size() - 1;
+        while (endPos > dotPos && numStr[endPos] == '0') {
+            endPos--;
+        }
+
+        // If the last char after trimming is '.', append '0'
+        if (endPos == dotPos) {
+            endPos++;
+        }
+
+        return numStr.substr(0, endPos + 1);
+    }
+
+
     void number() {
         std::string buff = "";
         bool isFloat = false;
@@ -216,15 +238,11 @@ private:
         }
 
         if (isFloat) {
-            double value = std::stod(buff);
-            std::ostringstream oss;
-            oss << value;  // prints shortest form like 95.0, 4223.471, etc.
-            std::cout << "NUMBER " << buff << " " << oss.str() << std::endl;
+            std::string normalized = normalizeNumberLiteral(buff);
+            std::cout << "NUMBER " << buff << " " << normalized << std::endl;
         }else {
-            int intValue = std::stoi(buff);
-            std::ostringstream oss2;
-            oss2 << std::fixed << std::setprecision(1) << static_cast<double>(intValue);
-            std::cout << "NUMBER " << intValue << " " << oss2.str() << std::endl;
+            std::string normalized = buff+".0";
+            std::cout << "NUMBER " << buff << " " << normalized << std::endl;
         }
     }
 
