@@ -206,7 +206,7 @@ private:
         } else {
             buff += ".0";
             double value = std::stod(buff);
-            std::cout << "NUMBER " << buff << " " << value << std::endl;
+            std::cout << "NUMBER " << value << " " << buff << std::endl;
         }
     }
 
