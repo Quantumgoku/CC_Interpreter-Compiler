@@ -197,9 +197,9 @@ private:
         double value = std::stod(num);
         std::string lexeme = text.substr(start, current - start);
         std::cout<<"NUMBER "<<lexeme<<" "<<value<<std::endl;
-        literal value;
-        value = std::stod(num);
-        addToken(TokenType::NUMBER, value);
+        literal value1;
+        value1 = std::stod(num);
+        addToken(TokenType::NUMBER, value1);
     }
 
     bool isAtEnd(){
