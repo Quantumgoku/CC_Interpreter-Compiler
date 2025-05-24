@@ -215,15 +215,23 @@ private:
 
     void identifier(){
         std::string buff="";
+        std::string typeToPrint="";
         while(isalnum(peek()) || peek()=='_'){
             buff+=consume();
         }
-        TokenType type = TokenType::IDENTIFIER;
+        Token token = Token(TokenType::IDENTIFIER, buff, literal(), line);
         if(keywords.find(buff)!=keywords.end()){
-            type=keywords[buff];
+            TokenType type = keywords[buff];
+            token = Token(type, buff, literal(), line);
+            typeToPrint = token.getStringType();
         }
-        addToken(type);
-        std::cout << "IDENTIFIER " << buff << " null" << std::endl;
+        addToken(token.getType(), token.getLit());
+        if(typeToPrint.empty()){
+            typeToPrint = "IDENTIFIER";
+        }else{
+            typeToPrint = token.getStringType();
+        }
+        std::cout << typeToPrint << " " << buff << " null" << std::endl;
     }
 
     void number() {
