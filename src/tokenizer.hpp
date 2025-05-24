@@ -148,7 +148,7 @@ public:
                         consume(); // consume the dot
                         std::cout << "DOT . null" << std::endl;
                         number(); // consume the rest as number
-                    } else if(isalpha(currentChar)){
+                    } else if(isalpha(currentChar) || currentChar == '_') {
                         identifier();
                     }else {
                         std::cerr << "[line " << line << "] Error: Unexpected character: " << currentChar  << std::endl;
