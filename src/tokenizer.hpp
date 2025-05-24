@@ -5,6 +5,7 @@
 #include "token.hpp"
 #include<iomanip>
 #include<vector>
+#include<map>
 
 class Tokenizer{
 public:
@@ -147,7 +148,9 @@ public:
                         consume(); // consume the dot
                         std::cout << "DOT . null" << std::endl;
                         number(); // consume the rest as number
-                    } else {
+                    } else if(isalpha(currentChar)){
+                        identifier();
+                    }else {
                         std::cerr << "[line " << line << "] Error: Unexpected character: " << currentChar  << std::endl;
                         hitDef = true;
                         consume(); // advance to avoid infinite loop
@@ -210,6 +213,18 @@ private:
         return numStr.substr(0, endPos + 1);
     }
 
+    void identifier(){
+        std::string buff="";
+        while(isalnum(peek()) || peek()=='_'){
+            buff+=consume();
+        }
+        TokenType type = TokenType::IDENTIFIER;
+        if(keywords.find(buff)!=keywords.end()){
+            type=keywords[buff];
+        }
+        addToken(type);
+        std::cout << "IDENTIFIER " << buff << " null" << std::endl;
+    }
 
     void number() {
         std::string buff = "";
@@ -257,4 +272,22 @@ private:
     std::string text;
     std::string current_token;
     std::vector<Token> tokens;
+    std::map<std::string,TokenType> keywords = {
+        {"and", TokenType::AND},
+        {"class", TokenType::CLASS},
+        {"else", TokenType::ELSE},
+        {"false", TokenType::FALSE},
+        {"fun", TokenType::FUN},
+        {"for", TokenType::FOR},
+        {"if", TokenType::IF},
+        {"nil", TokenType::NIL},
+        {"or", TokenType::OR},
+        {"print", TokenType::PRINT},
+        {"return", TokenType::RETURN},
+        {"super", TokenType::SUPER},
+        {"this", TokenType::THIS},
+        {"true", TokenType::TRUE},
+        {"var", TokenType::VAR},
+        {"while", TokenType::WHILE}
+    };
 };
