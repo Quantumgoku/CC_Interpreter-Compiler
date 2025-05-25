@@ -3,6 +3,7 @@
 #include <vector>
 #include <optional>
 #include <unordered_map>
+#include<algorithm>
 
 enum class TokenType {
     // Single-character tokens.
@@ -164,8 +165,10 @@ private:
             {"while", TokenType::WHILE}
         };
         auto it = keywords.find(value);
+        std::string keywordType = (it!=keywords.end()) ? it->first : "IDENTIFIER";
+        std::transform(keywordType.begin(), keywordType.end(), keywordType.begin(), [](unsigned char c){ return std::toupper(c);});
         TokenType type = (it != keywords.end()) ? it->second : TokenType::IDENTIFIER;
-        std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER " : "KEYWORD ") << value << " null" << std::endl;
+        std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER " : keywordType)<<" " << value << " null" << std::endl;
         return Token(type, value, std::nullopt, line);
     }
 
