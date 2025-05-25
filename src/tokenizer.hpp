@@ -148,7 +148,7 @@ private:
         std::string keywordType = (it!=keywords.end()) ? it->first : "IDENTIFIER";
         std::transform(keywordType.begin(), keywordType.end(), keywordType.begin(), [](unsigned char c){ return std::toupper(c);});
         TokenType type = (it != keywords.end()) ? it->second : TokenType::IDENTIFIER;
-        if(printToken) std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER " : keywordType)<<" " << value << " null" << std::endl;
+        if(printToken) std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER" : keywordType)<<" " << value << " null" << std::endl;
         return Token(type, value, std::nullopt, line);
     }
 
