@@ -1,33 +1,11 @@
+#pragma once
 #include <iostream>
 #include <string>
 #include <vector>
 #include <optional>
 #include <unordered_map>
 #include<algorithm>
-
-enum class TokenType {
-    // Single-character tokens.
-    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, COMMA, DOT,
-    MINUS, PLUS, SEMICOLON, SLASH, STAR,
-    // One or two character tokens.
-    BANG, BANG_EQUAL, EQUAL, EQUAL_EQUAL,
-    GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
-    // Literals.
-    IDENTIFIER, STRING, NUMBER,
-    // Keywords.
-    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, PRINT, RETURN,
-    SUPER, THIS, TRUE, VAR, WHILE,
-    END_OF_FILE,
-};
-
-struct Token {
-    TokenType type;
-    std::optional<std::string> lexme;
-    std::optional<std::string> lit;
-    int line;
-    Token(TokenType type, std::optional<std::string> lexme, std::optional<std::string> lit, int line)
-        : type(type), lexme(lexme), lit(lit), line(line) {}
-};
+#include "token.hpp"
 
 class Tokenizer {
 public:
@@ -102,6 +80,7 @@ public:
         }
         std::cout << "EOF  null" << std::endl;
         if (hitDef) exit(65);
+        tokens.push_back(Token(TokenType::END_OF_FILE, std::nullopt, std::nullopt, line));
         return tokens;
     }
 
@@ -122,13 +101,12 @@ private:
         return true;
     }
 
-    // Helper for single-char tokens
     Token simpleToken(TokenType type, const char* name) {
         char c = consume();
         std::cout << name << " " << c << " null" << std::endl;
         return Token(type, std::string(1, c), std::nullopt, line);
     }
-    // Helper for two-char tokens
+
     Token complexToken(TokenType type, const char* name, const std::string& lex) {
         consume(); consume();
         std::cout << name << " " << lex << " null" << std::endl;
@@ -137,7 +115,7 @@ private:
 
     // String literal
     Token stringToken() {
-        consume(); // opening "
+        consume(); 
         std::string value;
         while (!isAtEnd() && peek() != '"') {
             if (peek() == '\n') line++;
@@ -147,7 +125,7 @@ private:
             std::cerr << "[line " << line << "] Error: Unterminated string." << std::endl;
             exit(65);
         }
-        consume(); // closing "
+        consume(); 
         std::cout << "STRING \"" << value << "\" " << value << std::endl;
         return Token(TokenType::STRING, value, value, line);
     }

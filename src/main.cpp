@@ -4,6 +4,8 @@
 #include <sstream>
 #include <string>
 #include "tokenizer.hpp"
+#include "parser.hpp"
+#include "astprinter.hpp"
 
 std::string read_file_contents(const std::string& filename);
 
@@ -22,18 +24,29 @@ int main(int argc, char *argv[]) {
 
     const std::string command = argv[1];
 
+    std::string file_contents = read_file_contents(argv[2]);
+    if (file_contents.empty()) {
+        std::cerr << "Error: File is empty or could not be read." << std::endl;
+        return 1;
+    }
+
     if (command == "tokenize") {
-        std::string file_contents = read_file_contents(argv[2]);
-        
-        // Uncomment this block to pass the first stage
-        // 
-        // if (!file_contents.empty()) {
-        //     std::cerr << "Scanner not implemented" << std::endl;
-        //     return 1;
-        // }
         Tokenizer tokenizer(file_contents);
         tokenizer.tokenize();
-        
+    }else if(command == "parse"){
+        Tokenizer Tokenizer(file_contents);
+        std::vector<Token> tokens = Tokenizer.tokenize();
+        Parser parser(tokens);
+        std::unique_ptr<Expr> expr = parser.parse();
+        if(expr){
+            ASTPrinter printer;
+            std::string output = printer.print(*expr);
+            std::cout << output << std::endl;
+        } else {
+            std::cerr << "Parsing failed." << std::endl;
+            return 1;
+        }
+
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
         return 1;

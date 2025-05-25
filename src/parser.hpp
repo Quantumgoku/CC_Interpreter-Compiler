@@ -1,9 +1,180 @@
+#pragma once
 #include "token.hpp"
 #include "tokenizer.hpp"
+#include "Expr.hpp"
 #include <iostream>
+#include <memory>
+#include <string>
+#include <vector>
+#include <unordered_map>
 
-struct Expr{
-    Expr *left;
-    Expr *right;
-    Token op;
+class Parser{
+public:
+    Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
+
+    std::unique_ptr<Expr> parse(){
+        try {
+            std::optional<std::unique_ptr<Expr>> expr = expression();
+            if (expr) {
+                if (!isAtEnd()) {
+                    throw ParseError("Unexpected tokens after expression.");
+                }
+                return std::move(expr.value());
+            }
+        } catch (const ParseError&) {
+            synchronize();
+        }
+        return nullptr;
+    }
+
+private:
+    class ParseError : public std::runtime_error {
+    public:
+        explicit ParseError(const std::string& message) : std::runtime_error(message) {}
+    };
+
+    void synchronize(){
+        consume();
+        while(!isAtEnd()){
+            if(previous().type == TokenType::SEMICOLON) return;
+            switch(peek().type){
+                case TokenType::CLASS:
+                case TokenType::FUN:
+                case TokenType::VAR:
+                case TokenType::FOR:
+                case TokenType::IF:
+                case TokenType::WHILE:
+                case TokenType::PRINT:
+                case TokenType::RETURN:
+                    return;
+            }
+            consume();
+        }
+    }
+
+    std::optional<std::unique_ptr<Expr>> expression() {
+        std::optional<std::unique_ptr<Expr>> expr = equality();
+        if (expr) {
+            return std::move(expr);
+        }
+        return std::nullopt;
+    }
+
+    std::optional<std::unique_ptr<Expr>> equality(){
+        std::optional<std::unique_ptr<Expr>> expr = comparison();
+        while(match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = comparison();
+            expr = std::make_unique<Binary>(std::move(expr.value()), op, std::move(right.value()));
+        }
+        return expr;
+    }
+
+    std::optional<std::unique_ptr<Expr>> comparison(){
+        std::optional<std::unique_ptr<Expr>> expr = term();
+        while(match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = term();
+            expr = std::make_unique<Binary>(std::move(expr.value()),op,std::move(right.value()));
+        }
+        return expr;
+    }
+
+    std::optional<std::unique_ptr<Expr>> term(){
+        std::optional<std::unique_ptr<Expr>> expr = factor();
+        while(match({TokenType::MINUS, TokenType::PLUS})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = factor();
+            expr = std::make_unique<Binary>(std::move(expr.value()), op, std::move(right.value()));
+        }
+        return expr;
+    }
+
+    std::optional<std::unique_ptr<Expr>> factor(){
+        std::optional<std::unique_ptr<Expr>> expr = unary();
+        while(match({TokenType::SLASH, TokenType::STAR})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = unary();
+            expr = std::make_unique<Binary>(std::move(expr.value()), op, std::move(right.value()));
+        }
+        return expr;
+    }
+
+    std::optional<std::unique_ptr<Expr>> unary(){
+        if(match({TokenType::BANG, TokenType::MINUS})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = unary();
+            return std::make_unique<Unary>(op, std::move(right.value()));
+        }
+        return primary();
+    }
+
+    std::optional<std::unique_ptr<Expr>> primary(){
+        if(match({TokenType::FALSE, TokenType::TRUE, TokenType::NIL})){
+            return std::make_unique<Literal>(std::make_optional(previous().lexme.value_or("")));
+        }
+        if(match({TokenType::NUMBER, TokenType::STRING})){
+            return std::make_unique<Literal>(previous().lit);
+        }
+        if(match({TokenType::LEFT_PAREN})){
+            std::optional<std::unique_ptr<Expr>> expr = expression();
+            try_consume(TokenType::RIGHT_PAREN, "Expected ')' after expression.");
+            return std::make_unique<Grouping>(std::move(expr.value()));
+        }
+        if(match({TokenType::IDENTIFIER})){
+            return std::make_unique<Literal>(previous().lexme);
+        }
+        std::cerr << "[line " << peek().line << "] Error: Unexpected token: " << peek().lexme.value_or("unknown") << std::endl;
+        return std::nullopt;
+    }
+
+    bool match(std::initializer_list<TokenType> types) {
+        for (TokenType type : types) {
+            if (check(type)) {
+                consume();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool check(TokenType type) const {
+        if (isAtEnd()) return false;
+        return tokens[current].type == type;
+    }
+
+    Token consume(){
+        if(!isAtEnd()) current++;
+        return previous();
+    }
+
+    Token try_consume(TokenType type, std::string errorMessage){
+        if (check(type)) {
+            return consume();
+        }
+        throw error(peek(), errorMessage);
+    }
+
+    ParseError error(const Token& token, std::string message){
+        if (token.type == TokenType::END_OF_FILE) {
+            return ParseError("[line " + std::to_string(token.line) + "] Error at end: " + message);
+        } else {
+            return ParseError("[line " + std::to_string(token.line) + "] Error at '" + token.lexme.value_or("unknown") + "': " + message);
+        }
+    }
+
+    bool isAtEnd() const {
+        return current >= tokens.size() || tokens[current].type == TokenType::END_OF_FILE;
+    }
+
+    Token peek(){
+        return tokens[current];
+    }
+
+    Token previous() const {
+        return tokens[current - 1];
+    }
+
+    std::vector<Token> tokens;
+    size_t current = 0;
 };
