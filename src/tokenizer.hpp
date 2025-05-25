@@ -110,7 +110,7 @@ private:
     }
 
     Token complexToken(TokenType type, const char* name, const std::string& lex) {
-        consume(); consume();
+        consume();
         if(printToken) std::cout << name << " " << lex << " null" << std::endl;
         return Token(type, lex, std::nullopt, line);
     }
