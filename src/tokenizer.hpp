@@ -52,24 +52,36 @@ public:
                 case ';': tokens.push_back(simpleToken(TokenType::SEMICOLON, "SEMICOLON")); break;
                 case '/': tokens.push_back(simpleToken(TokenType::SLASH, "SLASH")); break;
                 case '!':
-                    tokens.push_back(match('=') ?
-                        complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "!=") :
-                        simpleToken(TokenType::BANG, "BANG"));
+                    consume(); // consume first '='
+                    if (match('=')) {
+                        tokens.push_back(complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "=="));
+                    } else {
+                        tokens.push_back(simpleToken(TokenType::BANG, "BANG"));
+                    }
                     break;
                 case '=':
-                    tokens.push_back(match('=') ?
-                        complexToken(TokenType::EQUAL_EQUAL, "EQUAL_EQUAL", "==") :
-                        simpleToken(TokenType::EQUAL, "EQUAL"));
+                    consume(); // consume first '='
+                    if (match('=')) {
+                        tokens.push_back(complexToken(TokenType::EQUAL_EQUAL, "EQUAL_EQUAL", "=="));
+                    } else {
+                        tokens.push_back(simpleToken(TokenType::EQUAL, "EQUAL"));
+                    }
                     break;
                 case '<':
-                    tokens.push_back(match('=') ?
-                        complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "<=") :
-                        simpleToken(TokenType::LESS, "LESS"));
+                    consume(); // consume first '='
+                    if (match('=')) {
+                        tokens.push_back(complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "=="));
+                    } else {
+                        tokens.push_back(simpleToken(TokenType::LESS, "LESS"));
+                    }
                     break;
                 case '>':
-                    tokens.push_back(match('=') ?
-                        complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", ">=") :
-                        simpleToken(TokenType::GREATER, "GREATER"));
+                    consume(); // consume first '='
+                    if (match('=')) {
+                        tokens.push_back(complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", "=="));
+                    } else {
+                        tokens.push_back(simpleToken(TokenType::GREATER, "GREATER"));
+                    }
                     break;
                 default:
                     std::cerr << "[line " << line << "] Error: Unexpected character: " << c << std::endl;
@@ -110,7 +122,6 @@ private:
     }
 
     Token complexToken(TokenType type, const char* name, const std::string& lex) {
-        consume();
         if(printToken) std::cout << name << " " << lex << " null" << std::endl;
         return Token(type, lex, std::nullopt, line);
     }
