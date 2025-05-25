@@ -9,7 +9,7 @@
 
 class Tokenizer {
 public:
-    Tokenizer(const std::string& input) : text(input) {}
+    Tokenizer(const std::string& input , bool print = false) : text(input), printToken(print) {}
 
     std::vector<Token> tokenize() {
         std::vector<Token> tokens;
@@ -78,13 +78,15 @@ public:
                     break;
             }
         }
-        std::cout << "EOF  null" << std::endl;
+        if(printToken) std::cout << "EOF  null" << std::endl;
         if (hitDef) exit(65);
         tokens.push_back(Token(TokenType::END_OF_FILE, std::nullopt, std::nullopt, line));
         return tokens;
     }
 
 private:
+    bool printToken = false;
+
     std::string text;
     int current = 0;
     int line = 1;
@@ -103,13 +105,13 @@ private:
 
     Token simpleToken(TokenType type, const char* name) {
         char c = consume();
-        std::cout << name << " " << c << " null" << std::endl;
+        if(printToken) std::cout << name << " " << c << " null" << std::endl;
         return Token(type, std::string(1, c), std::nullopt, line);
     }
 
     Token complexToken(TokenType type, const char* name, const std::string& lex) {
         consume(); consume();
-        std::cout << name << " " << lex << " null" << std::endl;
+        if(printToken) std::cout << name << " " << lex << " null" << std::endl;
         return Token(type, lex, std::nullopt, line);
     }
 
@@ -126,7 +128,7 @@ private:
             exit(65);
         }
         consume(); 
-        std::cout << "STRING \"" << value << "\" " << value << std::endl;
+        if(printToken) std::cout << "STRING \"" << value << "\" " << value << std::endl;
         return Token(TokenType::STRING, value, value, line);
     }
 
@@ -146,7 +148,7 @@ private:
         std::string keywordType = (it!=keywords.end()) ? it->first : "IDENTIFIER";
         std::transform(keywordType.begin(), keywordType.end(), keywordType.begin(), [](unsigned char c){ return std::toupper(c);});
         TokenType type = (it != keywords.end()) ? it->second : TokenType::IDENTIFIER;
-        std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER " : keywordType)<<" " << value << " null" << std::endl;
+        if(printToken) std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER " : keywordType)<<" " << value << " null" << std::endl;
         return Token(type, value, std::nullopt, line);
     }
 
@@ -161,7 +163,7 @@ private:
             while (isdigit(peek())) value += consume();
         }
         std::string normalized = normalizeNumberLiteral(value);
-        std::cout << "NUMBER " << value << " " << normalized << std::endl;
+        if(printToken) std::cout << "NUMBER " << value << " " << normalized << std::endl;
         return Token(TokenType::NUMBER, value, normalized, line);
     }
 

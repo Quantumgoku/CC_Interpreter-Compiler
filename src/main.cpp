@@ -31,10 +31,10 @@ int main(int argc, char *argv[]) {
     }
 
     if (command == "tokenize") {
-        Tokenizer tokenizer(file_contents);
+        Tokenizer tokenizer(file_contents, true);
         tokenizer.tokenize();
     }else if(command == "parse"){
-        Tokenizer Tokenizer(file_contents);
+        Tokenizer Tokenizer(file_contents, false);
         std::vector<Token> tokens = Tokenizer.tokenize();
         Parser parser(tokens);
         std::unique_ptr<Expr> expr = parser.parse();
