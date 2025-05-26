@@ -22,7 +22,7 @@ public:
 
     void visit(const Literal& expr) const override {
         if (!std::holds_alternative<std::monostate>(expr.value)) {
-            oss << std::visit([](auto&& arg) -> std::string {
+            oss << std::visit([this](auto&& arg) -> std::string {
                 using T = std::decay_t<decltype(arg)>;
                 if constexpr (std::is_same_v<T, std::string>)
                     return arg;
