@@ -68,7 +68,11 @@ private:
         oss << "(" << name;
         for (const auto& expr : exprs) {
             oss << " ";
-            expr->accept(*this);
+            if(auto lit = dynamic_cast<Literal*>(expr.get())){
+                this->visit(*lit);
+            }else{
+                expr->accept(*this);
+            }
         }
         oss << ")";
     }
