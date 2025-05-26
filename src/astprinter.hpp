@@ -21,10 +21,21 @@ public:
     }
 
     void visit(const Literal& expr) const override {
-        if (expr.value.has_value())
-            oss << expr.value.value();
-        else
+        if (!std::holds_alternative<std::monostate>(expr.value)) {
+            oss << std::visit([](auto&& arg) -> std::string {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, std::string>)
+                    return arg;
+                else if constexpr (std::is_same_v<T, double>)
+                    return std::to_string(arg);
+                else if constexpr (std::is_same_v<T, bool>)
+                    return arg ? "true" : "false";
+                else
+                    return "";
+            }, expr.value);
+        } else {
             oss << "nil";
+        }
     }
 
     void visit(const Unary& expr) const override {
