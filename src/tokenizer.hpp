@@ -116,7 +116,7 @@ private:
     bool isAtEnd() const { return current >= text.size(); }
     bool match(char expected) {
         if (isAtEnd() || text[current] != expected) return false;
-        //current++;
+        current++;
         return true;
     }
 
