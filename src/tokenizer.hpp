@@ -27,7 +27,7 @@ public:
                 continue;
             }
             if (c == '"') {
-                tokens.push_back(stringToken());
+                tokens.push_back(stringToken(hitDef));
                 continue;
             }
             if (isalpha(c) || c == '_') {
@@ -133,7 +133,7 @@ private:
     }
 
     // String literal
-    Token stringToken() {
+    Token stringToken(bool& hitDef) {
         consume(); 
         std::string value;
         while (!isAtEnd() && peek() != '"') {
@@ -142,7 +142,7 @@ private:
         }
         if (isAtEnd()) {
             std::cerr << "[line " << line << "] Error: Unterminated string." << std::endl;
-            exit(65);
+            hitDef = true;
         }
         consume(); 
         if(printToken) std::cout << "STRING \"" << value << "\" " << value << std::endl;
