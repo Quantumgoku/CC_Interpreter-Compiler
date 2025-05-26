@@ -27,7 +27,7 @@ public:
                 if constexpr (std::is_same_v<T, std::string>)
                     return arg;
                 else if constexpr (std::is_same_v<T, double>)
-                    return std::to_string(arg);
+                    return normalizeNumberLiteral(std::to_string(arg));
                 else if constexpr (std::is_same_v<T, bool>)
                     return arg ? "true" : "false";
                 else
@@ -44,6 +44,24 @@ public:
 
 private:
     mutable std::ostringstream oss;
+
+    std::string normalizeNumberLiteral(const std::string& numStr) {
+        size_t dotPos = numStr.find('.');
+        if (dotPos == std::string::npos) {
+            // No decimal point, add ".0"
+            return numStr + ".0";
+        }
+        // Start from the end and remove trailing zeros
+        size_t endPos = numStr.size() - 1;
+        while (endPos > dotPos && numStr[endPos] == '0') {
+            endPos--;
+        }
+        // If the last char after trimming is '.', append '0'
+        if (endPos == dotPos) {
+            endPos++;
+        }
+        return numStr.substr(0, endPos + 1);
+    }
 
     // Helper for parenthesizing nodes
     void parenthesize(const std::string& name, const std::vector<ExprPtr>& exprs) const {
