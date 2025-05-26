@@ -56,32 +56,40 @@ public:
                     ch = consume();
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "!="));
+                        continue;
                     } else {
                         tokens.push_back(simpleToken(TokenType::BANG, "BANG", ch));
+                        continue;
                     }
                     break;
                 case '=':
                     ch = consume(); // consume first '='
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::EQUAL_EQUAL, "EQUAL_EQUAL", "=="));
+                        continue;
                     } else {
                         tokens.push_back(simpleToken(TokenType::EQUAL, "EQUAL", ch));
+                        continue;
                     }
                     break;
                 case '<':
                     ch = consume(); 
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "<="));
+                        continue;
                     } else {
                         tokens.push_back(simpleToken(TokenType::LESS, "LESS", ch));
+                        continue;
                     }
                     break;
                 case '>':
                     ch = consume(); 
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", ">="));
+                        continue;
                     } else {
                         tokens.push_back(simpleToken(TokenType::GREATER, "GREATER", ch));
+                        continue;
                     }
                     break;
                 default:
