@@ -110,8 +110,14 @@ private:
     }
 
     std::optional<std::unique_ptr<Expr>> primary(){
-        if(match({TokenType::FALSE, TokenType::TRUE, TokenType::NIL})){
-            return std::make_unique<Literal>(previous().getLexme());
+        if(match({TokenType::TRUE})){
+            return std::make_unique<Literal>(true);
+        }
+        if(match({TokenType::FALSE})){
+            return std::make_unique<Literal>(false);
+        }
+        if(match({TokenType::NIL})){
+            return std::make_unique<Literal>(std::monostate{});
         }
         if(match({TokenType::NUMBER, TokenType::STRING})){
             return std::make_unique<Literal>(previous().getLiteral());
