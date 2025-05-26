@@ -118,6 +118,7 @@ private:
 
     Token simpleToken(TokenType type, const char* name, char c = '\0') {
         consume();
+        if(c == '\0') c = text[current - 1]; // Use the last consumed character if not provided
         if(printToken) std::cout << name << " " << c << " null" << std::endl;
         return Token(type, std::string(1, c), std::nullopt, line);
     }
