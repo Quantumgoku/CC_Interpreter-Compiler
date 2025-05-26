@@ -38,6 +38,7 @@ public:
                 tokens.push_back(numberToken());
                 continue;
             }
+            char  ch;
             // Multi-char operators
             switch (c) {
                 case '(': tokens.push_back(simpleToken(TokenType::LEFT_PAREN, "LEFT_PAREN")); break;
@@ -52,35 +53,35 @@ public:
                 case ';': tokens.push_back(simpleToken(TokenType::SEMICOLON, "SEMICOLON")); break;
                 case '/': tokens.push_back(simpleToken(TokenType::SLASH, "SLASH")); break;
                 case '!':
-                    consume(); // consume first '='
+                    ch = consume();
                     if (match('=')) {
-                        tokens.push_back(complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "=="));
+                        tokens.push_back(complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "!="));
                     } else {
-                        tokens.push_back(simpleToken(TokenType::BANG, "BANG"));
+                        tokens.push_back(simpleToken(TokenType::BANG, "BANG", ch));
                     }
                     break;
                 case '=':
-                    consume(); // consume first '='
+                    ch = consume(); // consume first '='
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::EQUAL_EQUAL, "EQUAL_EQUAL", "=="));
                     } else {
-                        tokens.push_back(simpleToken(TokenType::EQUAL, "EQUAL"));
+                        tokens.push_back(simpleToken(TokenType::EQUAL, "EQUAL", ch));
                     }
                     break;
                 case '<':
-                    consume(); // consume first '='
+                    ch = consume(); 
                     if (match('=')) {
-                        tokens.push_back(complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "=="));
+                        tokens.push_back(complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "<="));
                     } else {
-                        tokens.push_back(simpleToken(TokenType::LESS, "LESS"));
+                        tokens.push_back(simpleToken(TokenType::LESS, "LESS", ch));
                     }
                     break;
                 case '>':
-                    consume(); // consume first '='
+                    ch = consume(); 
                     if (match('=')) {
-                        tokens.push_back(complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", "=="));
+                        tokens.push_back(complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", ">="));
                     } else {
-                        tokens.push_back(simpleToken(TokenType::GREATER, "GREATER"));
+                        tokens.push_back(simpleToken(TokenType::GREATER, "GREATER", ch));
                     }
                     break;
                 default:
@@ -111,12 +112,12 @@ private:
     bool isAtEnd() const { return current >= text.size(); }
     bool match(char expected) {
         if (isAtEnd() || text[current] != expected) return false;
-        current++;
+        //current++;
         return true;
     }
 
-    Token simpleToken(TokenType type, const char* name) {
-        char c = consume();
+    Token simpleToken(TokenType type, const char* name, char c = '\0') {
+        consume();
         if(printToken) std::cout << name << " " << c << " null" << std::endl;
         return Token(type, std::string(1, c), std::nullopt, line);
     }
