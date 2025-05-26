@@ -142,7 +142,7 @@ private:
         }
         if (isAtEnd()) {
             std::cerr << "[line " << line << "] Error: Unterminated string." << std::endl;
-            //exit(65);
+            exit(65);
         }
         consume(); 
         if(printToken) std::cout << "STRING \"" << value << "\" " << value << std::endl;
