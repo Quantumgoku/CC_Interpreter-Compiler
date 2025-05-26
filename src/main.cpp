@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 
     std::string file_contents = read_file_contents(argv[2]);
     if (file_contents.empty()) {
-        std::cout<<"EOF null"<<std::endl;
+        std::cout<<"EOF  null"<<std::endl;
         return 0;
     }
 
