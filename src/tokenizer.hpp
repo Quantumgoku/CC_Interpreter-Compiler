@@ -50,10 +50,10 @@ public:
                 case '*': tokens.push_back(simpleToken(TokenType::STAR, "STAR")); break;
                 case ';': tokens.push_back(simpleToken(TokenType::SEMICOLON, "SEMICOLON")); break;
                 case '/': tokens.push_back(simpleToken(TokenType::SLASH, "SLASH")); break;
-                case '!': tokens.push_back(match('=') ? complexToken(TokenType::BANG_EQUAL, "!=") : simpleToken(TokenType::BANG, "!")); break;
-                case '=': tokens.push_back(match('=') ? complexToken(TokenType::EQUAL_EQUAL, "==") : simpleToken(TokenType::EQUAL, "=")); break;
-                case '<': tokens.push_back(match('=') ? complexToken(TokenType::LESS_EQUAL, "<=") : simpleToken(TokenType::LESS, "<")); break;
-                case '>': tokens.push_back(match('=') ? complexToken(TokenType::GREATER_EQUAL, ">=") : simpleToken(TokenType::GREATER, ">")); break;
+                case '!': tokens.push_back(match('=') ? complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "!=") : simpleToken(TokenType::BANG, "BANG", "!")); break;
+                case '=': tokens.push_back(match('=') ? complexToken(TokenType::EQUAL_EQUAL, "EQUAL_EQUAL", "==") : simpleToken(TokenType::EQUAL, "EQUAL", "=")); break;
+                case '<': tokens.push_back(match('=') ? complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "<=") : simpleToken(TokenType::LESS, "LESS", "<")); break;
+                case '>': tokens.push_back(match('=') ? complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", ">=") : simpleToken(TokenType::GREATER, "GREATER", ">")); break;
                 default:
                     std::cerr << "[line " << line << "] Error: Unexpected character: " << c << std::endl;
                     hitDef = true;
@@ -85,14 +85,14 @@ private:
         current++;
         return true;
     }
-    Token simpleToken(TokenType type, const std::string& lexeme) {
+    Token simpleToken(TokenType type, const std::string& typeName, const std::string& lexeme = "") {
         consume();
-        if (printToken) std::cout << static_cast<int>(type) << " " << lexeme << " null" << std::endl;
-        return Token(type, lexeme, std::nullopt, line);
+        if (printToken) std::cout << typeName << " " << lexeme << " null" << std::endl;
+        return Token(type, lexeme.empty() ? std::nullopt : std::optional<std::string>(lexeme), std::nullopt, line);
     }
-    Token complexToken(TokenType type, const std::string& lexeme) {
+    Token complexToken(TokenType type, const std::string& typeName, const std::string& lexeme) {
         consume();
-        if (printToken) std::cout << static_cast<int>(type) << " " << lexeme << " null" << std::endl;
+        if (printToken) std::cout << typeName << " " << lexeme << " null" << std::endl;
         return Token(type, lexeme, std::nullopt, line);
     }
     Token stringToken(bool& hitDef) {
@@ -124,26 +124,25 @@ private:
         };
         TokenType type = keywords.count(textVal) ? keywords.at(textVal) : TokenType::IDENTIFIER;
         if (printToken) {
-    std::string typeName = (type == TokenType::IDENTIFIER) ? "IDENTIFIER" : 
-        // Map TokenType to string
-        (type == TokenType::AND ? "AND" :
-        type == TokenType::CLASS ? "CLASS" :
-        type == TokenType::ELSE ? "ELSE" :
-        type == TokenType::FALSE ? "FALSE" :
-        type == TokenType::FOR ? "FOR" :
-        type == TokenType::FUN ? "FUN" :
-        type == TokenType::IF ? "IF" :
-        type == TokenType::NIL ? "NIL" :
-        type == TokenType::OR ? "OR" :
-        type == TokenType::PRINT ? "PRINT" :
-        type == TokenType::RETURN ? "RETURN" :
-        type == TokenType::SUPER ? "SUPER" :
-        type == TokenType::THIS ? "THIS" :
-        type == TokenType::TRUE ? "TRUE" :
-        type == TokenType::VAR ? "VAR" :
-        type == TokenType::WHILE ? "WHILE" : "IDENTIFIER");
-    std::cout << typeName << " " << textVal << " null" << std::endl;
-}
+            std::string typeName = (type == TokenType::IDENTIFIER) ? "IDENTIFIER" : 
+                (type == TokenType::AND ? "AND" :
+                type == TokenType::CLASS ? "CLASS" :
+                type == TokenType::ELSE ? "ELSE" :
+                type == TokenType::FALSE ? "FALSE" :
+                type == TokenType::FOR ? "FOR" :
+                type == TokenType::FUN ? "FUN" :
+                type == TokenType::IF ? "IF" :
+                type == TokenType::NIL ? "NIL" :
+                type == TokenType::OR ? "OR" :
+                type == TokenType::PRINT ? "PRINT" :
+                type == TokenType::RETURN ? "RETURN" :
+                type == TokenType::SUPER ? "SUPER" :
+                type == TokenType::THIS ? "THIS" :
+                type == TokenType::TRUE ? "TRUE" :
+                type == TokenType::VAR ? "VAR" :
+                type == TokenType::WHILE ? "WHILE" : "IDENTIFIER");
+            std::cout << typeName << " " << textVal << " null" << std::endl;
+        }
         return Token(type, textVal, std::nullopt, line);
     }
     Token numberToken() {
