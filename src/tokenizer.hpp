@@ -74,10 +74,10 @@ public:
                     ch = consume(); 
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "<="));
-                        break;
+                        continue;
                     } else {
                         tokens.push_back(simpleToken(TokenType::LESS, "LESS", ch));
-                        break;
+                        continue;
                     }
                 case '>':
                     ch = consume(); 
