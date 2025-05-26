@@ -56,19 +56,19 @@ public:
                     ch = consume();
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "!="));
-                        break;
+                        continue;
                     } else {
                         tokens.push_back(simpleToken(TokenType::BANG, "BANG", ch));
-                        break;
+                        continue;
                     }
                 case '=':
                     ch = consume(); // consume first '='
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::EQUAL_EQUAL, "EQUAL_EQUAL", "=="));
-                        break;
+                        continue;
                     } else {
                         tokens.push_back(simpleToken(TokenType::EQUAL, "EQUAL", ch));
-                        break;
+                        continue;
                     }
                 case '<':
                     ch = consume(); 
