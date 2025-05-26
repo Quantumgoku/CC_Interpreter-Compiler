@@ -83,10 +83,10 @@ public:
                     ch = consume(); 
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", ">="));
-                        break;
+                        continue;
                     } else {
                         tokens.push_back(simpleToken(TokenType::GREATER, "GREATER", ch));
-                        break;
+                        continue;
                     }
                 default:
                     std::cerr << "[line " << line << "] Error: Unexpected character: " << c << std::endl;
