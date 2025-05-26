@@ -41,17 +41,17 @@ public:
             char  ch;
             // Multi-char operators
             switch (c) {
-                case '(': tokens.push_back(simpleToken(TokenType::LEFT_PAREN, "LEFT_PAREN")); break;
-                case ')': tokens.push_back(simpleToken(TokenType::RIGHT_PAREN, "RIGHT_PAREN")); break;
-                case '{': tokens.push_back(simpleToken(TokenType::LEFT_BRACE, "LEFT_BRACE")); break;
-                case '}': tokens.push_back(simpleToken(TokenType::RIGHT_BRACE, "RIGHT_BRACE")); break;
-                case ',': tokens.push_back(simpleToken(TokenType::COMMA, "COMMA")); break;
-                case '.': tokens.push_back(simpleToken(TokenType::DOT, "DOT")); break;
-                case '+': tokens.push_back(simpleToken(TokenType::PLUS, "PLUS")); break;
-                case '-': tokens.push_back(simpleToken(TokenType::MINUS, "MINUS")); break;
-                case '*': tokens.push_back(simpleToken(TokenType::STAR, "STAR")); break;
-                case ';': tokens.push_back(simpleToken(TokenType::SEMICOLON, "SEMICOLON")); break;
-                case '/': tokens.push_back(simpleToken(TokenType::SLASH, "SLASH")); break;
+                case '(': tokens.push_back(simpleToken(TokenType::LEFT_PAREN, "LEFT_PAREN")); continue;
+                case ')': tokens.push_back(simpleToken(TokenType::RIGHT_PAREN, "RIGHT_PAREN")); continue;
+                case '{': tokens.push_back(simpleToken(TokenType::LEFT_BRACE, "LEFT_BRACE")); continue;
+                case '}': tokens.push_back(simpleToken(TokenType::RIGHT_BRACE, "RIGHT_BRACE")); continue;
+                case ',': tokens.push_back(simpleToken(TokenType::COMMA, "COMMA")); continue;
+                case '.': tokens.push_back(simpleToken(TokenType::DOT, "DOT")); continue;
+                case '+': tokens.push_back(simpleToken(TokenType::PLUS, "PLUS")); continue;
+                case '-': tokens.push_back(simpleToken(TokenType::MINUS, "MINUS")); continue;
+                case '*': tokens.push_back(simpleToken(TokenType::STAR, "STAR")); continue;
+                case ';': tokens.push_back(simpleToken(TokenType::SEMICOLON, "SEMICOLON")); continue;
+                case '/': tokens.push_back(simpleToken(TokenType::SLASH, "SLASH")); continue;
                 case '!':
                     ch = consume();
                     if (match('=')) {
