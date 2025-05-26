@@ -56,42 +56,38 @@ public:
                     ch = consume();
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "!="));
-                        continue;
+                        break;
                     } else {
                         tokens.push_back(simpleToken(TokenType::BANG, "BANG", ch));
-                        continue;
+                        break;
                     }
-                    break;
                 case '=':
                     ch = consume(); // consume first '='
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::EQUAL_EQUAL, "EQUAL_EQUAL", "=="));
-                        continue;
+                        break;
                     } else {
                         tokens.push_back(simpleToken(TokenType::EQUAL, "EQUAL", ch));
-                        continue;
+                        break;
                     }
-                    break;
                 case '<':
                     ch = consume(); 
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "<="));
-                        continue;
+                        break;
                     } else {
                         tokens.push_back(simpleToken(TokenType::LESS, "LESS", ch));
-                        continue;
+                        break;
                     }
-                    break;
                 case '>':
                     ch = consume(); 
                     if (match('=')) {
                         tokens.push_back(complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", ">="));
-                        continue;
+                        break;
                     } else {
                         tokens.push_back(simpleToken(TokenType::GREATER, "GREATER", ch));
-                        continue;
+                        break;
                     }
-                    break;
                 default:
                     std::cerr << "[line " << line << "] Error: Unexpected character: " << c << std::endl;
                     hitDef = true;
