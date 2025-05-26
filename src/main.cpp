@@ -26,8 +26,8 @@ int main(int argc, char *argv[]) {
 
     std::string file_contents = read_file_contents(argv[2]);
     if (file_contents.empty()) {
-        std::cerr << "Error: File is empty or could not be read." << std::endl;
-        return 1;
+        std::cout<<"EOF null"<<std::endl;
+        return 0;
     }
 
     if (command == "tokenize") {
