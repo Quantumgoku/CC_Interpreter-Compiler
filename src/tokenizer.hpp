@@ -31,7 +31,9 @@ public:
                 continue;
             }
             if (isalpha(c) || c == '_') {
-                tokens.push_back(identifierToken());
+                std::string identifier;
+                identifier+=consume();
+                tokens.push_back(identifierToken(identifier));
                 continue;
             }
             if (isdigit(c)) {
@@ -159,8 +161,7 @@ private:
     }
 
     // Identifier or keyword
-    Token identifierToken() {
-        std::string value;
+    Token identifierToken(std::string value) {
         while (isalpha(peek()) || isdigit(peek()) || peek() == '_') value += consume();
         static const std::unordered_map<std::string, TokenType> keywords = {
             {"and", TokenType::AND}, {"class", TokenType::CLASS}, {"else", TokenType::ELSE},
