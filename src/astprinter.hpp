@@ -45,7 +45,7 @@ public:
 private:
     mutable std::ostringstream oss;
 
-    std::string normalizeNumberLiteral(const std::string& numStr) {
+    std::string normalizeNumberLiteral(const std::string& numStr) const {
         size_t dotPos = numStr.find('.');
         if (dotPos == std::string::npos) {
             // No decimal point, add ".0"
