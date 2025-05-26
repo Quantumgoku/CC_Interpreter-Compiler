@@ -13,7 +13,7 @@ public:
     }
 
     void visit(const Binary& expr) const override {
-        parenthesize(expr.op.lexme.value_or("?"), {expr.left, expr.right});
+        parenthesize(expr.op.getLexme(), {expr.left, expr.right});
     }
 
     void visit(const Grouping& expr) const override {
@@ -28,7 +28,7 @@ public:
     }
 
     void visit(const Unary& expr) const override {
-        parenthesize(expr.op.lexme.value_or("?"), {expr.right});
+        parenthesize(expr.op.getLexme(), {expr.right});
     }
 
 private:

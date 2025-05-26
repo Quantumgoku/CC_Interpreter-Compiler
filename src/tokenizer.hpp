@@ -1,3 +1,4 @@
+#pragma once
 #include<iostream>
 #include<sstream>
 #include<string>
@@ -6,12 +7,15 @@
 #include<iomanip>
 #include<vector>
 #include<map>
+
 class Tokenizer{
 public:
-    Tokenizer(const std::string& input) : text(input) {}
-    void tokenize(){
+    Tokenizer(const std::string& input, bool printToken = false) : text(input), printToken(printToken) {}
+
+    std::vector<Token> tokenize(){
         bool hitDef=false;
         std::string buff="";
+        tokens.clear();
         while(current<text.length()){
             char currentChar = peek();
             char currentToken;
@@ -31,56 +35,67 @@ public:
                     }
                     consume();
                     addToken(TokenType::STRING, buff);
-                    std::cout<<"STRING \""<<buff<<"\" "<<buff<<std::endl;
+                    if(printToken) std::cout<<"STRING \""<<buff<<"\" "<<buff<<std::endl;
                     buff="";
                     break;
                 case '(':
                     currentToken = consume();
-                    std::cout<<"LEFT_PAREN "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::LEFT_PAREN);
+                    if(printToken) std::cout<<"LEFT_PAREN "<<currentToken<<" null"<<std::endl;
                     break;
                 case ')':
                     currentToken = consume();
-                    std::cout<<"RIGHT_PAREN "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::RIGHT_PAREN);
+                    if(printToken) std::cout<<"RIGHT_PAREN "<<currentToken<<" null"<<std::endl;
                     break;
                 case '{':
                     currentToken = consume();
-                    std::cout<<"LEFT_BRACE "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::LEFT_BRACE);
+                    if(printToken) std::cout<<"LEFT_BRACE "<<currentToken<<" null"<<std::endl;
                     break;
                 case '}':
                     currentToken = consume();
-                    std::cout<<"RIGHT_BRACE "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::RIGHT_BRACE);
+                    if(printToken) std::cout<<"RIGHT_BRACE "<<currentToken<<" null"<<std::endl;
                     break;
                 case ',':
                     currentToken = consume();
-                    std::cout<<"COMMA "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::COMMA);
+                    if(printToken) std::cout<<"COMMA "<<currentToken<<" null"<<std::endl;
                     break;
                 case '.':
                     currentToken = consume();
-                    std::cout<<"DOT "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::DOT);
+                    if(printToken) std::cout<<"DOT "<<currentToken<<" null"<<std::endl;
                     break;
                 case '+':
                     currentToken = consume();
-                    std::cout<<"PLUS "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::PLUS);
+                    if(printToken) std::cout<<"PLUS "<<currentToken<<" null"<<std::endl;
                     break;
                 case '-':
                     currentToken = consume();
-                    std::cout<<"MINUS "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::MINUS);
+                    if(printToken) std::cout<<"MINUS "<<currentToken<<" null"<<std::endl;
                     break;
                 case '*':
                     currentToken = consume();
-                    std::cout<<"STAR "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::STAR);
+                    if(printToken) std::cout<<"STAR "<<currentToken<<" null"<<std::endl;
                     break;
                 case '/':
                     currentToken = consume();
                     if(peek()=='/'){
                         while(peek()!='\n' && current<text.length()) consume();
                     }else{
-                        std::cout<<"SLASH "<<currentToken<<" null"<<std::endl;
+                        addToken(TokenType::SLASH);
+                        if(printToken) std::cout<<"SLASH "<<currentToken<<" null"<<std::endl;
                     }
                     break;
                 case ';':
                     currentToken = consume();
-                    std::cout<<"SEMICOLON "<<currentToken<<" null"<<std::endl;
+                    addToken(TokenType::SEMICOLON);
+                    if(printToken) std::cout<<"SEMICOLON "<<currentToken<<" null"<<std::endl;
                     break;
                 case '!':
                     currentToken = consume();
@@ -88,9 +103,11 @@ public:
                         buff="";
                         buff+=currentToken;
                         buff+=consume();
-                        std::cout<<"BANG_EQUAL "<<buff<<" null"<<std::endl;
+                        addToken(TokenType::BANG_EQUAL);
+                        if(printToken) std::cout<<"BANG_EQUAL "<<buff<<" null"<<std::endl;
                     }else{
-                        std::cout<<"BANG "<<currentToken<<" null"<<std::endl;
+                        addToken(TokenType::BANG);
+                        if(printToken) std::cout<<"BANG "<<currentToken<<" null"<<std::endl;
                     }
                     buff="";
                     break;
@@ -100,9 +117,11 @@ public:
                         buff="";
                         buff+=currentToken;
                         buff+=consume();
-                        std::cout<<"EQUAL_EQUAL "<<buff<<" null"<<std::endl;
+                        addToken(TokenType::EQUAL_EQUAL);
+                        if(printToken) std::cout<<"EQUAL_EQUAL "<<buff<<" null"<<std::endl;
                     }else{
-                        std::cout<<"EQUAL "<<currentToken<<" null"<<std::endl;
+                        addToken(TokenType::EQUAL);
+                        if(printToken) std::cout<<"EQUAL "<<currentToken<<" null"<<std::endl;
                     }
                     buff="";
                     break;
@@ -112,9 +131,11 @@ public:
                         buff="";
                         buff+=currentToken;
                         buff+=consume();
-                        std::cout<<"LESS_EQUAL "<<buff<<" null"<<std::endl;
+                        addToken(TokenType::LESS_EQUAL);
+                        if(printToken) std::cout<<"LESS_EQUAL "<<buff<<" null"<<std::endl;
                     }else{
-                        std::cout<<"LESS "<<currentToken<<" null"<<std::endl;
+                        addToken(TokenType::LESS);
+                        if(printToken) std::cout<<"LESS "<<currentToken<<" null"<<std::endl;
                     }
                     buff="";
                     break;
@@ -124,19 +145,21 @@ public:
                         buff="";
                         buff+=currentToken;
                         buff+=consume();
-                        std::cout<<"GREATER_EQUAL "<<buff<<" null"<<std::endl;
+                        addToken(TokenType::GREATER_EQUAL);
+                        if(printToken) std::cout<<"GREATER_EQUAL "<<buff<<" null"<<std::endl;
                     }else{
-                        std::cout<<"GREATER "<<currentToken<<" null"<<std::endl;
+                        addToken(TokenType::GREATER);
+                        if(printToken) std::cout<<"GREATER "<<currentToken<<" null"<<std::endl;
                     }
                     buff="";
                     break;
                 case ' ':
                 case '\r':
                 case '\t':
-                    currentToken = consume();
+                    consume();
                     break;
                 case '\n':
-                    currentToken = consume();
+                    consume();
                     line++;
                     break;
                 default:
@@ -144,7 +167,7 @@ public:
                         number();
                     } else if (currentChar == '.' && isDigit(peek(1))) {
                         consume(); // consume the dot
-                        std::cout << "DOT . null" << std::endl;
+                        if(printToken) std::cout << "DOT . null" << std::endl;
                         number(); // consume the rest as number
                     } else if(isalpha(currentChar) || currentChar == '_') {
                         identifier();
@@ -156,12 +179,15 @@ public:
                     break;
             }
         }
-        std::cout << "EOF  null" << std::endl;
+        addToken(TokenType::END_OF_FILE);
+        if(printToken) std::cout << "EOF  null" << std::endl;
         if(hitDef){
             exit(65);
         }
+        return tokens;
     }
 private:
+    bool printToken = false;
     char peek(int index=0){
         if(current + index >= text.length()){
             return '\0';
@@ -174,12 +200,12 @@ private:
     void addToken(TokenType type){
         addToken(type, literal());
     }
-    bool isDigit(char c){
-        return c>='0' && c<='9';
-    }
     void addToken(TokenType type, literal lit){
         std::string lexeme = text.substr(start, current - start);
         tokens.push_back(Token(type,lexeme,lit,line));
+    }
+    bool isDigit(char c){
+        return c>='0' && c<='9';
     }
     std::string normalizeNumberLiteral(const std::string& numStr) {
         size_t dotPos = numStr.find('.');
@@ -211,12 +237,14 @@ private:
             typeToPrint = token.getStringType();
         }
         addToken(token.getType(), token.getLit());
-        if(typeToPrint.empty()){
-            typeToPrint = "IDENTIFIER";
-        }else{
-            typeToPrint = token.getStringType();
+        if(printToken){
+            if(typeToPrint.empty()){
+                typeToPrint = "IDENTIFIER";
+            }else{
+                typeToPrint = token.getStringType();
+            }
+            std::cout << typeToPrint << " " << buff << " null" << std::endl;
         }
-        std::cout << typeToPrint << " " << buff << " null" << std::endl;
     }
     void number() {
         std::string buff = "";
@@ -227,8 +255,11 @@ private:
         // Handle case like "123." (trailing dot but not float)
         if (peek() == '.' && !isDigit(peek(1))) {
             double value = std::stod(buff);
-            std::cout << "NUMBER " << buff << " " << buff << ".0" << std::endl;
-            std::cout << "DOT . null" << std::endl;
+            addToken(TokenType::NUMBER, value);
+            if(printToken){
+                std::cout << "NUMBER " << buff << " " << buff << ".0" << std::endl;
+                std::cout << "DOT . null" << std::endl;
+            }
             consume();
             return;
         }
@@ -242,14 +273,16 @@ private:
         }
         if (isFloat) {
             std::string normalized = normalizeNumberLiteral(buff);
-            std::cout << "NUMBER " << buff << " " << normalized << std::endl;
+            addToken(TokenType::NUMBER, std::stod(normalized));
+            if(printToken) std::cout << "NUMBER " << buff << " " << normalized << std::endl;
         }else {
             std::string normalized = buff+".0";
-            std::cout << "NUMBER " << buff << " " << normalized << std::endl;
+            addToken(TokenType::NUMBER, std::stod(normalized));
+            if(printToken) std::cout << "NUMBER " << buff << " " << normalized << std::endl;
         }
     }
     bool isAtEnd(){
-        return current>text.length();
+        return current>=text.length();
     }
     int start=0;
     int current=0;

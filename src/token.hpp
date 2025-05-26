@@ -1,3 +1,4 @@
+#pragma once
 #include<string>
 #include<variant>
 #include<optional>
@@ -55,6 +56,23 @@ public:
         this->lit=lit;
         this->line=line;
     }
+
+    int getLength() const {
+        return lexme.length();
+    }
+
+    std::string getLexmeWithType() const {
+        return getStringType() + " " + lexme;
+    }
+
+    literal getLiteral() const {
+        return lit;
+    }
+
+    TokenType getTokenType() const {
+        return type;
+    }
+
     std::string getStringType() const {
         switch (type) {
             case TokenType::LEFT_PAREN: return "LEFT_PAREN";

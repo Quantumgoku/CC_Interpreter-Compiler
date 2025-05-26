@@ -36,8 +36,8 @@ private:
     void synchronize(){
         consume();
         while(!isAtEnd()){
-            if(previous().type == TokenType::SEMICOLON) return;
-            switch(peek().type){
+            if(previous().getType() == TokenType::SEMICOLON) return;
+            switch(peek().getType()){
                 case TokenType::CLASS:
                 case TokenType::FUN:
                 case TokenType::VAR:
@@ -111,10 +111,10 @@ private:
 
     std::optional<std::unique_ptr<Expr>> primary(){
         if(match({TokenType::FALSE, TokenType::TRUE, TokenType::NIL})){
-            return std::make_unique<Literal>(std::make_optional(previous().lexme.value_or("")));
+            return std::make_unique<Literal>(previous().getLexme());
         }
         if(match({TokenType::NUMBER, TokenType::STRING})){
-            return std::make_unique<Literal>(previous().lit);
+            return std::make_unique<Literal>(previous().getLiteral());
         }
         if(match({TokenType::LEFT_PAREN})){
             std::optional<std::unique_ptr<Expr>> expr = expression();
@@ -122,9 +122,13 @@ private:
             return std::make_unique<Grouping>(std::move(expr.value()));
         }
         if(match({TokenType::IDENTIFIER})){
-            return std::make_unique<Literal>(previous().lexme);
+            return std::make_unique<Literal>(previous().getLexme());
         }
-        std::cerr << "[line " << peek().line << "] Error: Unexpected token: " << peek().lexme.value_or("unknown") << std::endl;
+        {
+            std::string lexme = peek().getLexme();
+            if (lexme.empty()) lexme = "unknown";
+            std::cerr << "[line " << peek().getLine() << "] Error: Unexpected token: " << lexme << std::endl;
+        }
         return std::nullopt;
     }
 
@@ -140,7 +144,7 @@ private:
 
     bool check(TokenType type) const {
         if (isAtEnd()) return false;
-        return tokens[current].type == type;
+        return tokens[current].getType() == type;
     }
 
     Token consume(){
@@ -156,15 +160,15 @@ private:
     }
 
     ParseError error(const Token& token, std::string message){
-        if (token.type == TokenType::END_OF_FILE) {
-            return ParseError("[line " + std::to_string(token.line) + "] Error at end: " + message);
+        if (token.getType() == TokenType::END_OF_FILE) {
+            return ParseError("[line " + std::to_string(token.getLine()) + "] Error at end: " + message);
         } else {
-            return ParseError("[line " + std::to_string(token.line) + "] Error at '" + token.lexme.value_or("unknown") + "': " + message);
+            return ParseError("[line " + std::to_string(token.getLine()) + "] Error at '" + token.getLexme() + "': " + message);
         }
     }
 
     bool isAtEnd() const {
-        return current >= tokens.size() || tokens[current].type == TokenType::END_OF_FILE;
+        return current >= tokens.size() || tokens[current].getType() == TokenType::END_OF_FILE;
     }
 
     Token peek(){
