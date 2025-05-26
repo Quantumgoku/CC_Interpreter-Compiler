@@ -123,7 +123,27 @@ private:
             {"while", TokenType::WHILE}
         };
         TokenType type = keywords.count(textVal) ? keywords.at(textVal) : TokenType::IDENTIFIER;
-        if (printToken) std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER" : textVal) << " " << textVal << " null" << std::endl;
+        if (printToken) {
+    std::string typeName = (type == TokenType::IDENTIFIER) ? "IDENTIFIER" : 
+        // Map TokenType to string
+        (type == TokenType::AND ? "AND" :
+        type == TokenType::CLASS ? "CLASS" :
+        type == TokenType::ELSE ? "ELSE" :
+        type == TokenType::FALSE ? "FALSE" :
+        type == TokenType::FOR ? "FOR" :
+        type == TokenType::FUN ? "FUN" :
+        type == TokenType::IF ? "IF" :
+        type == TokenType::NIL ? "NIL" :
+        type == TokenType::OR ? "OR" :
+        type == TokenType::PRINT ? "PRINT" :
+        type == TokenType::RETURN ? "RETURN" :
+        type == TokenType::SUPER ? "SUPER" :
+        type == TokenType::THIS ? "THIS" :
+        type == TokenType::TRUE ? "TRUE" :
+        type == TokenType::VAR ? "VAR" :
+        type == TokenType::WHILE ? "WHILE" : "IDENTIFIER");
+    std::cout << typeName << " " << textVal << " null" << std::endl;
+}
         return Token(type, textVal, std::nullopt, line);
     }
     Token numberToken() {
