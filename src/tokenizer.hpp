@@ -41,8 +41,16 @@ public:
             char  ch;
             // Multi-char operators
             switch (c) {
-                case '(': tokens.push_back(simpleToken(TokenType::LEFT_PAREN, "LEFT_PAREN")); continue;
-                case ')': tokens.push_back(simpleToken(TokenType::RIGHT_PAREN, "RIGHT_PAREN")); continue;
+                case '(': {
+                    char ch = consume();
+                    tokens.push_back(simpleToken(TokenType::LEFT_PAREN, "LEFT_PAREN", ch));
+                    continue;
+                }
+                case ')': {
+                    char ch = consume();
+                    tokens.push_back(simpleToken(TokenType::RIGHT_PAREN, "RIGHT_PAREN", ch));
+                    continue;
+                }
                 case '{': tokens.push_back(simpleToken(TokenType::LEFT_BRACE, "LEFT_BRACE")); continue;
                 case '}': tokens.push_back(simpleToken(TokenType::RIGHT_BRACE, "RIGHT_BRACE")); continue;
                 case ',': tokens.push_back(simpleToken(TokenType::COMMA, "COMMA")); continue;
