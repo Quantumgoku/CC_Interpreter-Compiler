@@ -1,6 +1,7 @@
 #pragma once
+
 #include <string>
-#include <optional>
+#include <variant>
 #include <vector>
 #include <memory>
 #include "token.hpp"
@@ -47,9 +48,10 @@ public:
 
 class Literal : public Expr {
 public:
-    Literal(std::optional<std::string> value) : value(value) {}
+    ~Literal() override = default;
+    Literal(std::variant<std::monostate, std::string, double, bool> value) : value(value) {}
     void accept(const ExprVisitorBase& visitor) const override { visitor.visit(*this); }
-    std::optional<std::string> value;
+    std::variant<std::monostate, std::string, double, bool> value;
 };
 
 class Unary : public Expr {
