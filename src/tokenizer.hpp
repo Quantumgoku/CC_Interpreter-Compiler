@@ -4,17 +4,18 @@
 #include <vector>
 #include <optional>
 #include <unordered_map>
-#include<algorithm>
+#include <algorithm>
 #include "token.hpp"
 
 class Tokenizer {
 public:
-    Tokenizer(const std::string& input , bool print = false) : text(input), printToken(print) {}
+    Tokenizer(const std::string& input, bool print = false) : text(input), printToken(print) {}
 
     std::vector<Token> tokenize() {
         std::vector<Token> tokens;
         bool hitDef = false;
         while (!isAtEnd()) {
+            start = current;
             char c = peek();
             if (isspace(c)) {
                 if (c == '\n') line++;
@@ -22,82 +23,37 @@ public:
                 continue;
             }
             if (c == '/' && peek(1) == '/') {
-                // Skip comment
                 while (!isAtEnd() && peek() != '\n') consume();
                 continue;
             }
-            if (c == '"') {
+            if (c == '\"') {
                 tokens.push_back(stringToken(hitDef));
                 continue;
             }
             if (isalpha(c) || c == '_') {
-                std::string identifier;
-                identifier+=consume();
-                tokens.push_back(identifierToken(identifier));
+                tokens.push_back(identifierToken());
                 continue;
             }
             if (isdigit(c)) {
                 tokens.push_back(numberToken());
                 continue;
             }
-            char  ch;
-            // Multi-char operators
             switch (c) {
-                case '(': {
-                    char ch = consume();
-                    tokens.push_back(simpleToken(TokenType::LEFT_PAREN, "LEFT_PAREN", ch));
-                    continue;
-                }
-                case ')': {
-                    char ch = consume();
-                    tokens.push_back(simpleToken(TokenType::RIGHT_PAREN, "RIGHT_PAREN", ch));
-                    continue;
-                }
-                case '{': tokens.push_back(simpleToken(TokenType::LEFT_BRACE, "LEFT_BRACE")); continue;
-                case '}': tokens.push_back(simpleToken(TokenType::RIGHT_BRACE, "RIGHT_BRACE")); continue;
-                case ',': tokens.push_back(simpleToken(TokenType::COMMA, "COMMA")); continue;
-                case '.': tokens.push_back(simpleToken(TokenType::DOT, "DOT")); continue;
-                case '+': tokens.push_back(simpleToken(TokenType::PLUS, "PLUS")); continue;
-                case '-': tokens.push_back(simpleToken(TokenType::MINUS, "MINUS")); continue;
-                case '*': tokens.push_back(simpleToken(TokenType::STAR, "STAR")); continue;
-                case ';': tokens.push_back(simpleToken(TokenType::SEMICOLON, "SEMICOLON")); continue;
-                case '/': tokens.push_back(simpleToken(TokenType::SLASH, "SLASH")); continue;
-                case '!':
-                    ch = consume();
-                    if (match('=')) {
-                        tokens.push_back(complexToken(TokenType::BANG_EQUAL, "BANG_EQUAL", "!="));
-                        continue;
-                    } else {
-                        tokens.push_back(simpleToken(TokenType::BANG, "BANG", ch));
-                        continue;
-                    }
-                case '=':
-                    ch = consume(); // consume first '='
-                    if (match('=')) {
-                        tokens.push_back(complexToken(TokenType::EQUAL_EQUAL, "EQUAL_EQUAL", "=="));
-                        continue;
-                    } else {
-                        tokens.push_back(simpleToken(TokenType::EQUAL, "EQUAL", ch));
-                        continue;
-                    }
-                case '<':
-                    ch = consume(); 
-                    if (match('=')) {
-                        tokens.push_back(complexToken(TokenType::LESS_EQUAL, "LESS_EQUAL", "<="));
-                        continue;
-                    } else {
-                        tokens.push_back(simpleToken(TokenType::LESS, "LESS", ch));
-                        continue;
-                    }
-                case '>':
-                    ch = consume(); 
-                    if (match('=')) {
-                        tokens.push_back(complexToken(TokenType::GREATER_EQUAL, "GREATER_EQUAL", ">="));
-                        continue;
-                    } else {
-                        tokens.push_back(simpleToken(TokenType::GREATER, "GREATER", ch));
-                        continue;
-                    }
+                case '(': tokens.push_back(simpleToken(TokenType::LEFT_PAREN, "LEFT_PAREN")); break;
+                case ')': tokens.push_back(simpleToken(TokenType::RIGHT_PAREN, "RIGHT_PAREN")); break;
+                case '{': tokens.push_back(simpleToken(TokenType::LEFT_BRACE, "LEFT_BRACE")); break;
+                case '}': tokens.push_back(simpleToken(TokenType::RIGHT_BRACE, "RIGHT_BRACE")); break;
+                case ',': tokens.push_back(simpleToken(TokenType::COMMA, "COMMA")); break;
+                case '.': tokens.push_back(simpleToken(TokenType::DOT, "DOT")); break;
+                case '+': tokens.push_back(simpleToken(TokenType::PLUS, "PLUS")); break;
+                case '-': tokens.push_back(simpleToken(TokenType::MINUS, "MINUS")); break;
+                case '*': tokens.push_back(simpleToken(TokenType::STAR, "STAR")); break;
+                case ';': tokens.push_back(simpleToken(TokenType::SEMICOLON, "SEMICOLON")); break;
+                case '/': tokens.push_back(simpleToken(TokenType::SLASH, "SLASH")); break;
+                case '!': tokens.push_back(match('=') ? complexToken(TokenType::BANG_EQUAL, "!=") : simpleToken(TokenType::BANG, "!")); break;
+                case '=': tokens.push_back(match('=') ? complexToken(TokenType::EQUAL_EQUAL, "==") : simpleToken(TokenType::EQUAL, "=")); break;
+                case '<': tokens.push_back(match('=') ? complexToken(TokenType::LESS_EQUAL, "<=") : simpleToken(TokenType::LESS, "<")); break;
+                case '>': tokens.push_back(match('=') ? complexToken(TokenType::GREATER_EQUAL, ">=") : simpleToken(TokenType::GREATER, ">")); break;
                 default:
                     std::cerr << "[line " << line << "] Error: Unexpected character: " << c << std::endl;
                     hitDef = true;
@@ -105,7 +61,7 @@ public:
                     break;
             }
         }
-        if(printToken) std::cout << "EOF  null" << std::endl;
+        if (printToken) std::cout << "EOF  null" << std::endl;
         if (hitDef) exit(65);
         tokens.push_back(Token(TokenType::END_OF_FILE, std::nullopt, std::nullopt, line));
         return tokens;
@@ -113,9 +69,9 @@ public:
 
 private:
     bool printToken = false;
-
     std::string text;
     int current = 0;
+    int start = 0;
     int line = 1;
 
     char peek(int offset = 0) const {
@@ -129,24 +85,20 @@ private:
         current++;
         return true;
     }
-
-    Token simpleToken(TokenType type, const char* name, char c = '\0') {
+    Token simpleToken(TokenType type, const std::string& lexeme) {
         consume();
-        if(c == '\0') c = text[current - 1]; // Use the last consumed character if not provided
-        if(printToken) std::cout << name << " " << c << " null" << std::endl;
-        return Token(type, std::string(1, c), std::nullopt, line);
+        if (printToken) std::cout << static_cast<int>(type) << " " << lexeme << " null" << std::endl;
+        return Token(type, lexeme, std::nullopt, line);
     }
-
-    Token complexToken(TokenType type, const char* name, const std::string& lex) {
-        if(printToken) std::cout << name << " " << lex << " null" << std::endl;
-        return Token(type, lex, std::nullopt, line);
+    Token complexToken(TokenType type, const std::string& lexeme) {
+        consume();
+        if (printToken) std::cout << static_cast<int>(type) << " " << lexeme << " null" << std::endl;
+        return Token(type, lexeme, std::nullopt, line);
     }
-
-    // String literal
     Token stringToken(bool& hitDef) {
-        consume(); 
+        consume();
         std::string value;
-        while (!isAtEnd() && peek() != '"') {
+        while (!isAtEnd() && peek() != '\"') {
             if (peek() == '\n') line++;
             value += consume();
         }
@@ -155,52 +107,33 @@ private:
             hitDef = true;
             return Token(TokenType::STRING, std::nullopt, std::nullopt, line);
         }
-        consume(); 
-        if(printToken) std::cout << "STRING \"" << value << "\" " << value << std::endl;
+        consume();
+        if (printToken) std::cout << "STRING \"" << value << "\" " << value << std::endl;
         return Token(TokenType::STRING, value, value, line);
     }
-
-    // Identifier or keyword
-    Token identifierToken(std::string value) {
-        while (isalpha(peek()) || isdigit(peek()) || peek() == '_') value += consume();
+    Token identifierToken() {
+        while (isalnum(peek()) || peek() == '_') consume();
+        std::string textVal = text.substr(start, current - start);
         static const std::unordered_map<std::string, TokenType> keywords = {
             {"and", TokenType::AND}, {"class", TokenType::CLASS}, {"else", TokenType::ELSE},
-            {"false", TokenType::FALSE}, {"fun", TokenType::FUN}, {"for", TokenType::FOR},
+            {"false", TokenType::FALSE}, {"for", TokenType::FOR}, {"fun", TokenType::FUN},
             {"if", TokenType::IF}, {"nil", TokenType::NIL}, {"or", TokenType::OR},
             {"print", TokenType::PRINT}, {"return", TokenType::RETURN}, {"super", TokenType::SUPER},
             {"this", TokenType::THIS}, {"true", TokenType::TRUE}, {"var", TokenType::VAR},
             {"while", TokenType::WHILE}
         };
-        auto it = keywords.find(value);
-        std::string keywordType = (it!=keywords.end()) ? it->first : "IDENTIFIER";
-        std::transform(keywordType.begin(), keywordType.end(), keywordType.begin(), [](unsigned char c){ return std::toupper(c);});
-        TokenType type = (it != keywords.end()) ? it->second : TokenType::IDENTIFIER;
-        if(printToken) std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER" : keywordType)<<" " << value << " null" << std::endl;
-        return Token(type, value, std::nullopt, line);
+        TokenType type = keywords.count(textVal) ? keywords.at(textVal) : TokenType::IDENTIFIER;
+        if (printToken) std::cout << (type == TokenType::IDENTIFIER ? "IDENTIFIER" : textVal) << " " << textVal << " null" << std::endl;
+        return Token(type, textVal, std::nullopt, line);
     }
-
-    // Number literal
     Token numberToken() {
-        std::string value;
-        while (isdigit(peek())) value += consume();
-        bool isFloat = false;
+        while (isdigit(peek())) consume();
         if (peek() == '.' && isdigit(peek(1))) {
-            isFloat = true;
-            value += consume(); // consume '.'
-            while (isdigit(peek())) value += consume();
+            consume();
+            while (isdigit(peek())) consume();
         }
-        std::string normalized = normalizeNumberLiteral(value);
-        if(printToken) std::cout << "NUMBER " << value << " " << normalized << std::endl;
-        return Token(TokenType::NUMBER, value, normalized, line);
-    }
-
-    // Normalize number for output
-    std::string normalizeNumberLiteral(const std::string& numStr) {
-        size_t dotPos = numStr.find('.');
-        if (dotPos == std::string::npos) return numStr + ".0";
-        size_t endPos = numStr.size() - 1;
-        while (endPos > dotPos && numStr[endPos] == '0') endPos--;
-        if (endPos == dotPos) endPos++;
-        return numStr.substr(0, endPos + 1);
+        std::string numVal = text.substr(start, current - start);
+        if (printToken) std::cout << "NUMBER " << numVal << " " << numVal << std::endl;
+        return Token(TokenType::NUMBER, numVal, numVal, line);
     }
 };
