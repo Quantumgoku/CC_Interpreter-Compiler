@@ -27,7 +27,7 @@ public:
                 if constexpr (std::is_same_v<T, std::string>)
                     return arg;
                 else if constexpr (std::is_same_v<T, double>)
-                    return normalizeNumberLiteral(std::to_string(arg));
+                    return this->normalizeNumberLiteral(std::to_string(arg));
                 else if constexpr (std::is_same_v<T, bool>)
                     return arg ? "true" : "false";
                 else
