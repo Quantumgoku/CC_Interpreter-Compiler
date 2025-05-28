@@ -39,6 +39,7 @@ public:
     }
 
     void visit(const Unary& expr) const override {
+        //print expr for debugging 
         oss << "(" << expr.op.getLexme() << " ";
         expr.right->accept(*this);
         oss << ")";

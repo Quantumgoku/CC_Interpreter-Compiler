@@ -178,6 +178,7 @@ public:
                     }
                     break;
             }
+            start=current;
         }
         addToken(TokenType::END_OF_FILE);
         if(printToken) std::cout << "EOF  null" << std::endl;
