@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
             std::cout << output << std::endl;
         } else {
             std::cerr << "Parsing failed." << std::endl;
-            return 1;
+            return 65;
         }
 
     } else {
