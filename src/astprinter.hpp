@@ -74,6 +74,8 @@ private:
                 this->visit(*un);
             }else if(auto bin = dynamic_cast<Binary*>(expr.get())){
                 this->visit(*bin);
+            }else if(auto grp = dynamic_cast<Grouping*>(expr.get())){
+                this->visit(*grp);
             }else{
                 expr->accept(*this);
             }
