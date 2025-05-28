@@ -62,9 +62,11 @@ private:
 
     std::optional<std::unique_ptr<Expr>> equality(){
         std::optional<std::unique_ptr<Expr>> expr = comparison();
+        if(!expr) return std::nullopt;
         while(match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})){
             Token op = previous();
             std::optional<std::unique_ptr<Expr>> right = comparison();
+            if(!right) return std::nullopt;
             expr = std::make_unique<Binary>(std::move(expr.value()), op, std::move(right.value()));
         }
         return expr;
@@ -72,9 +74,11 @@ private:
 
     std::optional<std::unique_ptr<Expr>> comparison(){
         std::optional<std::unique_ptr<Expr>> expr = term();
+        if(!expr) return std::nullopt;
         while(match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL})){
             Token op = previous();
             std::optional<std::unique_ptr<Expr>> right = term();
+            if(!right) return std::nullopt;
             expr = std::make_unique<Binary>(std::move(expr.value()),op,std::move(right.value()));
         }
         return expr;
@@ -82,9 +86,11 @@ private:
 
     std::optional<std::unique_ptr<Expr>> term(){
         std::optional<std::unique_ptr<Expr>> expr = factor();
+        if(!expr) return std::nullopt;
         while(match({TokenType::MINUS, TokenType::PLUS})){
             Token op = previous();
             std::optional<std::unique_ptr<Expr>> right = factor();
+            if(!right) return std::nullopt;
             expr = std::make_unique<Binary>(std::move(expr.value()), op, std::move(right.value()));
         }
         return expr;
@@ -92,9 +98,11 @@ private:
 
     std::optional<std::unique_ptr<Expr>> factor(){
         std::optional<std::unique_ptr<Expr>> expr = unary();
+        if(!expr) return std::nullopt;
         while(match({TokenType::SLASH, TokenType::STAR})){
             Token op = previous();
             std::optional<std::unique_ptr<Expr>> right = unary();
+            if(!right) return std::nullopt;
             expr = std::make_unique<Binary>(std::move(expr.value()), op, std::move(right.value()));
         }
         return expr;
@@ -104,6 +112,7 @@ private:
         if(match({TokenType::BANG, TokenType::MINUS})){
             Token op = previous();
             std::optional<std::unique_ptr<Expr>> right = unary();
+            if(!right) return std::nullopt;
             return std::make_unique<Unary>(op, std::move(right.value()));
         }
         return primary();
