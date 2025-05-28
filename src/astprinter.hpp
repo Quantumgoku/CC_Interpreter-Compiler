@@ -39,7 +39,9 @@ public:
     }
 
     void visit(const Unary& expr) const override {
-        parenthesize(expr.op.getLexme(), {expr.right});
+        oss << "(" << expr.op.getLexme() << " ";
+        expr.right->accept(*this);
+        oss << ")";
     }
 
 private:
