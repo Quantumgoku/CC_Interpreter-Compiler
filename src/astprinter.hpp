@@ -72,12 +72,6 @@ private:
             oss << " ";
             if(auto lit = dynamic_cast<Literal*>(expr.get())){
                 this->visit(*lit);
-            }else if(auto un = dynamic_cast<Unary*>(expr.get())){
-                this->visit(*un);
-            }else if(auto bin = dynamic_cast<Binary*>(expr.get())){
-                this->visit(*bin);
-            }else if(auto grp = dynamic_cast<Grouping*>(expr.get())){
-                this->visit(*grp);
             }else{
                 expr->accept(*this);
             }
