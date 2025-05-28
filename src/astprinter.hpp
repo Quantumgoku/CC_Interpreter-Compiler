@@ -39,9 +39,7 @@ public:
     }
 
     void visit(const Unary& expr) const override {
-        oss << "(" << expr.op.getLexme() << " ";
-        expr.right->accept(*this);
-        oss << ")";
+        parenthesize(expr.op.getLexme(), {expr.right});
     }
 
 private:
@@ -50,31 +48,23 @@ private:
     std::string normalizeNumberLiteral(const std::string& numStr) const {
         size_t dotPos = numStr.find('.');
         if (dotPos == std::string::npos) {
-            // No decimal point, add ".0"
             return numStr + ".0";
         }
-        // Start from the end and remove trailing zeros
         size_t endPos = numStr.size() - 1;
         while (endPos > dotPos && numStr[endPos] == '0') {
             endPos--;
         }
-        // If the last char after trimming is '.', append '0'
         if (endPos == dotPos) {
             endPos++;
         }
         return numStr.substr(0, endPos + 1);
     }
 
-    // Helper for parenthesizing nodes
     void parenthesize(const std::string& name, const std::vector<ExprPtr>& exprs) const {
         oss << "(" << name;
         for (const auto& expr : exprs) {
             oss << " ";
-            if(auto lit = dynamic_cast<Literal*>(expr.get())){
-                this->visit(*lit);
-            }else{
-                expr->accept(*this);
-            }
+            expr->accept(*this);
         }
         oss << ")";
     }
