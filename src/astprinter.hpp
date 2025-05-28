@@ -39,7 +39,19 @@ public:
     }
 
     void visit(const Unary& expr) const override {
-        parenthesize(expr.op.getLexme(), {expr.right});
+        oss << "(" << expr.op.getLexme() << " ";
+        if(auto lit = dynamic_cast<Literal*>(expr.right.get())) {
+            this->visit(*lit);
+        } else if(auto un = dynamic_cast<Unary*>(expr.right.get())) {
+            this->visit(*un);
+        } else if(auto bin = dynamic_cast<Binary*>(expr.right.get())) {
+            this->visit(*bin);
+        } else if(auto grp = dynamic_cast<Grouping*>(expr.right.get())) {
+            this->visit(*grp);
+        } else {
+            expr.right->accept(*this);
+        }
+        oss << ")";
     }
 
 private:
