@@ -125,6 +125,9 @@ private:
         if(match({TokenType::LEFT_PAREN})){
             std::optional<std::unique_ptr<Expr>> expr = expression();
             try_consume(TokenType::RIGHT_PAREN, "Expected ')' after expression.");
+            if(!expr){
+                return std::nullopt;
+            }
             return std::make_unique<Grouping>(std::move(expr.value()));
         }
         if(match({TokenType::IDENTIFIER})){
