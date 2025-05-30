@@ -88,7 +88,7 @@ private:
         if(std::holds_alternative<std::monostate>(object)){
             return false;
         }
-        if(std::holds_alternative<std::monostate>(object)) return std::get<bool>(object);
+        if(std::holds_alternative<bool>(object)) return std::get<bool>(object);
         return true;
     }
 };
