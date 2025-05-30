@@ -91,6 +91,7 @@ private:
         for(auto operand : operands){
             if(!std::holds_alternative<double>(operand)){
                 throw RuntimeError(op, "Operands must be a number.");
+                exit(70);
             }
         }
     }
