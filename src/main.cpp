@@ -11,6 +11,19 @@
 std::string read_file_contents(const std::string& filename);
 std::string literal_to_string(const literal& value);
 
+void interpret(const std::vector<std::unique_ptr<Stmt>>& statements){
+    try{
+        Interpreter interpreter;
+        for(const auto& statement : statements){
+            interpreter.execute(*statement);
+        }
+    }catch(const Interpreter::RuntimeError& e){
+        std::cerr << e.what() << "\n";
+        std::cerr << e.token.getLine() << std::endl;
+        exit(70);
+    }
+}
+
 int main(int argc, char *argv[]) {
     // Disable output buffering
     std::cout << std::unitbuf;
@@ -39,7 +52,7 @@ int main(int argc, char *argv[]) {
         Tokenizer Tokenizer(file_contents, false);
         std::vector<Token> tokens = Tokenizer.tokenize();
         Parser parser(tokens);
-        std::unique_ptr<Expr> expr = parser.parse();
+        std::unique_ptr<Expr> expr = parser.parseExpr();
         if(expr){
             ASTPrinter printer;
             std::string output = printer.print(*expr);
@@ -53,17 +66,9 @@ int main(int argc, char *argv[]) {
         Tokenizer tokenizer(file_contents, false);
         std::vector<Token> tokens = tokenizer.tokenize();
         Parser parser(tokens);
-        std::unique_ptr<Expr> expr = parser.parse();
-        if (expr) {
-            try{
-                Interpreter interpreter;
-                literal output = interpreter.evaluate(*expr);
-                std::cout << literal_to_string(output) << std::endl;
-            }catch(const Interpreter::RuntimeError& e){
-                std::cerr << e.what() << "\n";
-                std::cerr << e.token.getLine() << std::endl;
-                return 70;
-            }
+        std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
+        if (!statements.empty()) {
+            interpret(statements);
         } else {
             std::cerr << "Evaluating failed." << std::endl;
         }

@@ -2,6 +2,7 @@
 #include "token.hpp"
 #include "tokenizer.hpp"
 #include "Expr.hpp"
+#include "Stmt.hpp"
 #include <iostream>
 #include <memory>
 #include <string>
@@ -12,26 +13,60 @@ class Parser{
 public:
     Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
 
-    std::unique_ptr<Expr> parse(){
-        try {
+    std::unique_ptr<Expr> parseExpr(){
+        try{
             std::optional<std::unique_ptr<Expr>> expr = expression();
-            if (expr) {
-                if (!isAtEnd()) {
+            if(expr){
+                if(!isAtEnd()){
                     throw ParseError("Unexpected tokens after expression.");
                 }
                 return std::move(expr.value());
             }
-        } catch (const ParseError&) {
+        }catch(const ParseError&){
             synchronize();
         }
         return nullptr;
     }
+
+    std::vector<std::unique_ptr<Stmt>> parse(){
+        std::vector<std::unique_ptr<Stmt>> statements;
+        while(!isAtEnd()){
+            auto stmt = statement();
+            if(stmt){
+                statements.push_back(std::move(stmt.value()));
+            }else{
+                break;
+            }
+        }
+        return statements;
+    }
+
 
 private:
     class ParseError : public std::runtime_error {
     public:
         explicit ParseError(const std::string& message) : std::runtime_error(message) {}
     };
+
+    std::optional<std::unique_ptr<Stmt>> statement(){
+        if(match({TokenType::PRINT})) return printStatement();
+
+        return expressionStatement();
+    }
+
+    std::optional<std::unique_ptr<Stmt>> printStatement(){
+        std::optional<std::unique_ptr<Expr>> value = expression();
+        try_consume(TokenType::SEMICOLON,"Expect ';' after value.");
+        if(!value) return std::nullopt;
+        return std::make_unique<Print>(std::move(value.value()));
+    }
+
+    std::optional<std::unique_ptr<Stmt>> expressionStatement(){
+        std::optional<std::unique_ptr<Expr>> expr = expression();
+        try_consume(TokenType::SEMICOLON,"Expect ';' after expression.");
+        if(!expr) return std::nullopt;
+        return std::make_unique<Expression>(std::move(expr.value()));
+    }
 
     void synchronize(){
         consume();

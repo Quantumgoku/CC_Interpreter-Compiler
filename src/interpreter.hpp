@@ -6,7 +6,7 @@
 #include "Expr.hpp"
 #include "token.hpp"
 
-class Interpreter : public ExprVisitorEval {
+class Interpreter : public ExprVisitorEval, public StmtVisitorPrint {
 public:
 
     class RuntimeError : public std::runtime_error {
@@ -15,6 +15,19 @@ public:
         RuntimeError(const Token& token, const std::string& message)
             : std::runtime_error(message), token(token) {}
     };
+
+    void visit(const Expression& stmt) const override {
+        evaluate(*stmt.expression);
+    }
+
+    void visit(const Print& stmt) const override {
+        literal value = evaluate(*stmt.expression);
+        std::cout<< literal_to_string(value) << std::endl;
+    }
+
+    void execute(Stmt& stmt){
+        stmt.accept(*this);
+    }
 
     literal evaluate(const Expr& expr) const{
         return expr.accept(*this);
@@ -86,6 +99,17 @@ public:
 
 private:
     mutable std::ostringstream oss;
+    std::string literal_to_string(const literal& value) const {
+        if (std::holds_alternative<std::monostate>(value)) return "nil";
+        if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);
+        if (std::holds_alternative<double>(value)) {
+            std::ostringstream oss;
+            oss << std::get<double>(value);
+            return oss.str();
+        }
+        if (std::holds_alternative<bool>(value)) return std::get<bool>(value) ? "true" : "false";
+        return "";
+    }
 
     void checkNumberOperand(const Token& op, std::initializer_list<literal> operands) const {
         for(auto operand : operands){
