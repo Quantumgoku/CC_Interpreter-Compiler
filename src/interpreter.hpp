@@ -73,6 +73,10 @@ public:
 
         switch(expr.op.getType()){
             case TokenType::MINUS:
+                if(!std::holds_alternative<double>(right)){
+                    std::cerr << "Operand must be a number." << std::endl;
+                    exit(70);
+                }
                 return -(std::get<double>(right));
             case TokenType::BANG:
                 return !isTruthy(right);

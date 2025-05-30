@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
             std::cout << interpreter.literal_to_string(output) << std::endl;
         } else {
             std::cerr << "Evaluating failed." << std::endl;
-            return 65;
+            return 70;
         }
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
