@@ -66,11 +66,29 @@ int main(int argc, char *argv[]) {
         Tokenizer tokenizer(file_contents, false);
         std::vector<Token> tokens = tokenizer.tokenize();
         Parser parser(tokens);
+        std::unique_ptr<Expr> expr = parser.parseExpr();
+        if (expr) {
+            try{
+                Interpreter interpreter;
+                literal output = interpreter.evaluate(*expr);
+                std::cout << literal_to_string(output) << std::endl;
+            }catch(const Interpreter::RuntimeError& e){
+                std::cerr << e.what() << "\n";
+                std::cerr << e.token.getLine() << std::endl;
+                return 70;
+            }
+        } else {
+            std::cerr << "Evaluating failed." << std::endl;
+        }
+    }else if(command == "run"){
+        Tokenizer tokenizer(file_contents, false);
+        std::vector<Token> tokens = tokenizer.tokenize();
+        Parser parser(tokens);
         std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
         if (!statements.empty()) {
             interpret(statements);
         } else {
-            std::cerr << "Evaluating failed." << std::endl;
+            std::cerr << "Executing failed." << std::endl;
         }
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
