@@ -9,6 +9,7 @@
 #include "interpreter.hpp"
 
 std::string read_file_contents(const std::string& filename);
+std::string literal_to_string(const literal& value);
 
 int main(int argc, char *argv[]) {
     // Disable output buffering
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
         if (expr) {
             Interpreter interpreter;
             literal output = interpreter.evaluate(*expr);
-            std::cout << interpreter.literal_to_string(output) << std::endl;
+            std::cout << literal_to_string(output) << std::endl;
         } else {
             std::cerr << "Evaluating failed." << std::endl;
             return 70;
@@ -68,6 +69,18 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+
+std::string literal_to_string(const literal& value) {
+        if (std::holds_alternative<std::monostate>(value)) return "nil";
+        if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);
+        if (std::holds_alternative<double>(value)) {
+            std::ostringstream oss;
+            oss << std::get<double>(value);
+            return oss.str();
+        }
+        if (std::holds_alternative<bool>(value)) return std::get<bool>(value) ? "true" : "false";
+        return "";
+    }
 
 std::string read_file_contents(const std::string& filename) {
     std::ifstream file(filename);

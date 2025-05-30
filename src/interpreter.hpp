@@ -8,18 +8,6 @@
 
 class Interpreter : public ExprVisitorEval {
 public:
-    std::string literal_to_string(const literal& value) const {
-        if (std::holds_alternative<std::monostate>(value)) return "nil";
-        if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);
-        if (std::holds_alternative<double>(value)) {
-            std::ostringstream oss;
-            oss << std::get<double>(value);
-            return oss.str();
-        }
-        if (std::holds_alternative<bool>(value)) return std::get<bool>(value) ? "true" : "false";
-        return "";
-
-    }
 
     literal evaluate(const Expr& expr) const{
         return expr.accept(*this);
@@ -44,25 +32,32 @@ public:
                 if(std::holds_alternative<std::string>(left) && std::holds_alternative<std::string>(right)){
                     return std::get<std::string>(left) + std::get<std::string>(right);
                 }
-                throw std::runtime_error("Operands must be either number or string.....");
+                throw RuntimeError(expr.op, "Operands must be two numbers or two strings.");
             
             case TokenType::MINUS:
+                checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) - std::get<double>(right);
             case TokenType::STAR:
+                checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) * std::get<double>(right);
             case TokenType::SLASH:
+                checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) / std::get<double>(right);
             case TokenType::EQUAL_EQUAL:
                 return left == right;
             case TokenType::BANG_EQUAL:
                 return left != right;
             case TokenType::GREATER:
+                checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) > std::get<double>(right);
             case TokenType::GREATER_EQUAL:
+                checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) >= std::get<double>(right);
             case TokenType::LESS:
+                checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) < std::get<double>(right);
             case TokenType::LESS_EQUAL:
+                checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) <= std::get<double>(right);
         }
         return std::monostate{};
@@ -73,10 +68,7 @@ public:
 
         switch(expr.op.getType()){
             case TokenType::MINUS:
-                if(!std::holds_alternative<double>(right)){
-                    std::cerr << "Operand must be a number." << std::endl;
-                    exit(70);
-                }
+                checkNumberOperand(expr.op, {right});
                 return -(std::get<double>(right));
             case TokenType::BANG:
                 return !isTruthy(right);
@@ -87,6 +79,21 @@ public:
 
 private:
     mutable std::ostringstream oss;
+
+    class RuntimeError : public std::runtime_error {
+    public:
+        Token token;
+        RuntimeError(const Token& token, const std::string& message)
+            : std::runtime_error(message), token(token) {}
+    };
+
+    void checkNumberOperand(const Token& op, std::initializer_list<literal> operands) const {
+        for(auto operand : operands){
+            if(!std::holds_alternative<double>(operand)){
+                throw RuntimeError(op, "Operands must be a number.");
+            }
+        }
+    }
 
     bool isTruthy(literal object) const {
         if(std::holds_alternative<std::monostate>(object)){
