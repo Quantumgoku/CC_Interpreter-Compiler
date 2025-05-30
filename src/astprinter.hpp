@@ -3,7 +3,7 @@
 #include "Expr.hpp"
 #include <iostream>
 
-class ASTPrinter : public ExprVisitorBase {
+class ASTPrinter : public ExprVisitorPrint {
 public:
     std::string print(const Expr& expr) {
         oss.str("");

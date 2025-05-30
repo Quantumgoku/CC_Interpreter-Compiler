@@ -6,6 +6,7 @@
 #include "tokenizer.hpp"
 #include "parser.hpp"
 #include "astprinter.hpp"
+#include "interpreter.hpp"
 
 std::string read_file_contents(const std::string& filename);
 
@@ -47,6 +48,19 @@ int main(int argc, char *argv[]) {
             return 65;
         }
 
+    }else if(command == "evaluate"){
+        Tokenizer tokenizer(file_contents, false);
+        std::vector<Token> tokens = tokenizer.tokenize();
+        Parser parser(tokens);
+        std::unique_ptr<Expr> expr = parser.parse();
+        if (expr) {
+            Interpreter interpreter;
+            literal output = interpreter.evaluate(*expr);
+            std::cout << interpreter.literal_to_string(output) << std::endl;
+        } else {
+            std::cerr << "Evaluating failed." << std::endl;
+            return 65;
+        }
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
         return 1;

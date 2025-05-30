@@ -7,12 +7,15 @@
 #include "token.hpp"
 
 class Expr;
-class ExprVisitorBase;
+class ExprVisitorPrint;
+
+class ExprVisitorEval;
 
 class Expr {
 public:
     virtual ~Expr() = default;
-    virtual void accept(const ExprVisitorBase& visitor) const = 0;
+    virtual void accept(const ExprVisitorPrint& visitor) const = 0;
+    virtual literal accept(const ExprVisitorEval& visitor) const = 0;
 };
 
 // Forward declarations
@@ -21,19 +24,29 @@ struct Grouping;
 struct Literal;
 struct Unary;
 
-class ExprVisitorBase {
+class ExprVisitorPrint {
 public:
     virtual void visit(const Binary& expr) const = 0;
     virtual void visit(const Grouping& expr) const = 0;
     virtual void visit(const Literal& expr) const = 0;
     virtual void visit(const Unary& expr) const = 0;
-    virtual ~ExprVisitorBase() = default;
+    virtual ~ExprVisitorPrint() = default;
+};
+
+class ExprVisitorEval {
+public:
+    virtual literal visit(const Binary& expr) const = 0;
+    virtual literal visit(const Grouping& expr) const = 0;
+    virtual literal visit(const Literal& expr) const = 0;
+    virtual literal visit(const Unary& expr) const = 0;
+    virtual ~ExprVisitorEval() = default;
 };
 
 class Binary : public Expr {
 public:
     Binary(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right) : left(left), op(op), right(right) {}
-    void accept(const ExprVisitorBase& visitor) const override { visitor.visit(*this); }
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> left;
     Token op;
     std::shared_ptr<Expr> right;
@@ -42,7 +55,8 @@ public:
 class Grouping : public Expr {
 public:
     Grouping(std::shared_ptr<Expr> expression) : expression(expression) {}
-    void accept(const ExprVisitorBase& visitor) const override { visitor.visit(*this); }
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> expression;
 };
 
@@ -50,14 +64,16 @@ class Literal : public Expr {
 public:
     ~Literal() override = default;
     Literal(std::variant<std::monostate, std::string, double, bool> value) : value(value) {}
-    void accept(const ExprVisitorBase& visitor) const override { visitor.visit(*this); }
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::variant<std::monostate, std::string, double, bool> value;
 };
 
 class Unary : public Expr {
 public:
     Unary(Token op, std::shared_ptr<Expr> right) : op(op), right(right) {}
-    void accept(const ExprVisitorBase& visitor) const override { visitor.visit(*this); }
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token op;
     std::shared_ptr<Expr> right;
 };
