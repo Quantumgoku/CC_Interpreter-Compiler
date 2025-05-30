@@ -9,6 +9,13 @@
 class Interpreter : public ExprVisitorEval {
 public:
 
+    class RuntimeError : public std::runtime_error {
+    public:
+        Token token;
+        RuntimeError(const Token& token, const std::string& message)
+            : std::runtime_error(message), token(token) {}
+    };
+
     literal evaluate(const Expr& expr) const{
         return expr.accept(*this);
     }
@@ -80,18 +87,10 @@ public:
 private:
     mutable std::ostringstream oss;
 
-    class RuntimeError : public std::runtime_error {
-    public:
-        Token token;
-        RuntimeError(const Token& token, const std::string& message)
-            : std::runtime_error(message), token(token) {}
-    };
-
     void checkNumberOperand(const Token& op, std::initializer_list<literal> operands) const {
         for(auto operand : operands){
             if(!std::holds_alternative<double>(operand)){
                 throw RuntimeError(op, "Operands must be a number.");
-                exit(70);
             }
         }
     }

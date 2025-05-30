@@ -55,12 +55,17 @@ int main(int argc, char *argv[]) {
         Parser parser(tokens);
         std::unique_ptr<Expr> expr = parser.parse();
         if (expr) {
-            Interpreter interpreter;
-            literal output = interpreter.evaluate(*expr);
-            std::cout << literal_to_string(output) << std::endl;
+            try{
+                Interpreter interpreter;
+                literal output = interpreter.evaluate(*expr);
+                std::cout << literal_to_string(output) << std::endl;
+            }catch(const Interpreter::RuntimeError& e){
+                std::cerr << e.what() << "\n";
+                std::cerr << e.token.getLine() << std::endl;
+                return 70;
+            }
         } else {
             std::cerr << "Evaluating failed." << std::endl;
-            return 70;
         }
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
