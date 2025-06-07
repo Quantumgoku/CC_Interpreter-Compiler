@@ -86,9 +86,6 @@ int main(int argc, char *argv[]) {
             std::vector<Token> tokens = tokenizer.tokenize();
             Parser parser(tokens);
             std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
-            // statements.erase(std::remove_if(statements.begin(), statements.end(),
-            //        [](const std::unique_ptr<Stmt>& stmt) { return stmt == nullptr; }),
-            // statements.end());
             if (!statements.empty()) {
                 interpret(statements);
             } else {
@@ -101,7 +98,7 @@ int main(int argc, char *argv[]) {
         }catch(const Interpreter::RuntimeError& e){
             std::cerr << e.what() << "\n";
             std::cerr << e.token.getLine() << std::endl;
-            return 65;
+            return 70;
         }catch(const std::exception& e){
             std::cerr << e.what() << std::endl;
             return 65;
