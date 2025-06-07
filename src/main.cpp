@@ -7,6 +7,7 @@
 #include "parser.hpp"
 #include "astprinter.hpp"
 #include "interpreter.hpp"
+#include "RuntimeError.hpp"
 
 std::string read_file_contents(const std::string& filename);
 std::string literal_to_string(const literal& value);
@@ -89,7 +90,7 @@ int main(int argc, char *argv[]) {
         }catch(const Parser::ParseError& e){
             std::cerr << e.what() << std::endl;
             return 65;
-        }catch(const Interpreter::RuntimeError& e){
+        }catch(const RuntimeError& e){
             std::cerr << e.what() << "\n";
             std::cerr << e.token.getLine() << std::endl;
             return 70;
