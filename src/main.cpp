@@ -98,6 +98,13 @@ int main(int argc, char *argv[]) {
         }catch(const std::exception& e){
             std::cerr << e.what() << std::endl;
             return 65;
+        }catch(const Interpreter::RuntimeError& e){
+            std::cerr << e.what() << "\n";
+            std::cerr << e.token.getLine() << std::endl;
+            return 65;
+        }catch(...){
+            std::cerr << "An unknown error occurred." << std::endl;
+            return 65;
         }
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
