@@ -38,11 +38,11 @@ public:
     }
 
     literal visit(const Variable& expr) const override {
-        auto value = environment->get(expr.name.getLexme());
-        if(!value.has_value()){
-            throw RuntimeError(expr.name, "Undefined variable '" + expr.name.getLexme() + "'.");
+        auto value = environment->getValue(expr.name);
+        if (std::holds_alternative<std::monostate>(value)) {
+            throw RuntimeError(expr.name, "Undefined variable '" + expr.name.getLexeme() + "'.");
         }
-        return value.value();
+        return value;
     }
 
     void visit(const Var& stmt) const override {
@@ -52,7 +52,7 @@ public:
         } else {
             value = std::monostate{};
         }
-        environment->define(stmt.name.getLexme(), value);
+        environment->define(stmt.name.getLexeme(), value);
     }
 
     literal visit(const Binary& expr) const override {
@@ -109,6 +109,7 @@ public:
     }
 
     literal visit(const Assign& expr) const override {
+        std::cerr << "[DEBUG] Assigning to: " << expr.name.getLexeme() << std::endl;
         literal value = evaluate(*expr.value);
         environment->assign(expr.name, value);
         return value;

@@ -236,7 +236,7 @@ private:
         if(match({TokenType::IDENTIFIER})){
             return std::make_unique<Variable>(previous());
         }else{
-            std::string lexme = peek().getLexme();
+            std::string lexme = peek().getLexeme();
             if (lexme.empty()) lexme = "unknown";
             throw error(peek(), "Unexpected token: '" + lexme + "'. Expected an expression.");
         }
@@ -274,7 +274,7 @@ private:
         if (token.getType() == TokenType::END_OF_FILE) {
             return ParseError("[line " + std::to_string(token.getLine()) + "] Error at end: " + message);
         } else {
-            return ParseError("[line " + std::to_string(token.getLine()) + "] Error at '" + token.getLexme() + "': " + message);
+            return ParseError("[line " + std::to_string(token.getLine()) + "] Error at '" + token.getLexeme() + "': " + message);
         }
     }
 

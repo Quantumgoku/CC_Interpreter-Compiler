@@ -120,7 +120,7 @@ public:
     TokenType getType() const {
         return type;
     }
-    std::string getLexme() const {
+    std::string getLexeme() const {
         return lexme;
     }
     literal getLit() const {

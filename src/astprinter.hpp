@@ -13,11 +13,11 @@ public:
     }
 
     void visit(const Variable& expr) const override {
-        oss << "(var " << expr.name.getLexme() << ")";
+        oss << "(var " << expr.name.getLexeme() << ")";
     }
 
     void visit(const Binary& expr) const override {
-        parenthesize(expr.op.getLexme(), {expr.left, expr.right});
+        parenthesize(expr.op.getLexeme(), {expr.left, expr.right});
     }
 
     void visit(const Grouping& expr) const override {
@@ -44,13 +44,13 @@ public:
 
     void visit(const Unary& expr) const override {
         //print expr for debugging 
-        oss << "(" << expr.op.getLexme() << " ";
+        oss << "(" << expr.op.getLexeme() << " ";
         expr.right->accept(*this);
         oss << ")";
     }
 
     void visit(const Assign& expr) const override {
-        oss << "(assign " << expr.name.getLexme() << " ";
+        oss << "(assign " << expr.name.getLexeme() << " ";
         expr.value->accept(*this);
         oss << ")";
     }
