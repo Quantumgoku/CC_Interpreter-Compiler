@@ -15,6 +15,8 @@ std::string literal_to_string(const literal& value);
 void interpret(const std::vector<std::shared_ptr<Stmt>>& statements){
     Interpreter interpreter;
     for(const auto& statement : statements){
+        // Debug: print type of statement
+        std::cerr << "Executing statement of type: " << typeid(*statement).name() << std::endl;
         interpreter.execute(*statement);
     }
 }

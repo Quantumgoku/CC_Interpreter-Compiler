@@ -51,6 +51,7 @@ public:
         } else {
             value = std::monostate{};
         }
+        std::cerr << "Defining variable: " << stmt.name.getLexme() << std::endl;
         environment->define(stmt.name.getLexme(), value);
     }
 
