@@ -121,6 +121,7 @@ public:
         return;
     }
 
+    Interpreter() : environment(std::make_shared<Environment>()) {}
     
 private:
     mutable std::shared_ptr<Environment> environment;
@@ -162,6 +163,4 @@ private:
         if(std::holds_alternative<bool>(object)) return std::get<bool>(object);
         return true;
     }
-
-    Interpreter() : environment(std::make_shared<Environment>()) {}
 };
