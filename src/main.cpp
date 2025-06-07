@@ -12,15 +12,9 @@ std::string read_file_contents(const std::string& filename);
 std::string literal_to_string(const literal& value);
 
 void interpret(const std::vector<std::unique_ptr<Stmt>>& statements){
-    try{
-        Interpreter interpreter;
-        for(const auto& statement : statements){
-            interpreter.execute(*statement);
-        }
-    }catch(const Interpreter::RuntimeError& e){
-        std::cerr << e.what() << "\n";
-        std::cerr << e.token.getLine() << std::endl;
-        exit(70);
+    Interpreter interpreter;
+    for(const auto& statement : statements){
+        interpreter.execute(*statement);
     }
 }
 
