@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
             interpret(statements);
         } else {
             std::cerr << "Executing failed." << std::endl;
-            return 65;
+            return 70;
         }
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
