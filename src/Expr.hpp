@@ -23,6 +23,7 @@ struct Binary;
 struct Grouping;
 struct Literal;
 struct Unary;
+struct Variable;
 
 class ExprVisitorPrint {
 public:
@@ -30,6 +31,7 @@ public:
     virtual void visit(const Grouping& expr) const = 0;
     virtual void visit(const Literal& expr) const = 0;
     virtual void visit(const Unary& expr) const = 0;
+    virtual void visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorPrint() = default;
 };
 
@@ -39,6 +41,7 @@ public:
     virtual literal visit(const Grouping& expr) const = 0;
     virtual literal visit(const Literal& expr) const = 0;
     virtual literal visit(const Unary& expr) const = 0;
+    virtual literal visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorEval() = default;
 };
 
@@ -76,6 +79,14 @@ public:
     literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token op;
     std::shared_ptr<Expr> right;
+};
+
+class Variable : public Expr {
+public:
+    Variable(Token name) : name(name) {}
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    Token name;
 };
 
 using ExprPtr = std::shared_ptr<Expr>;

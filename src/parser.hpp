@@ -31,12 +31,7 @@ public:
     std::vector<std::unique_ptr<Stmt>> parse(){
         std::vector<std::unique_ptr<Stmt>> statements;
         while(!isAtEnd()){
-            auto stmt = statement();
-            if(stmt){
-                statements.push_back(std::move(stmt.value()));
-            }else{
-                break;
-            }
+            statements.push_back(declaration());
         }
         return statements;
     }
@@ -47,6 +42,36 @@ private:
     public:
         explicit ParseError(const std::string& message) : std::runtime_error(message) {}
     };
+
+    std::unique_ptr<Stmt> declaration(){
+        try{
+            if(match({TokenType::VAR})) return varDeclaration();
+            auto stmtOpt = statement();
+            if (stmtOpt) {
+                return std::move(stmtOpt.value());
+            }
+            return nullptr;
+        }catch(ParseError error){
+            synchronize();
+            return nullptr;
+        }
+    }
+
+    std::unique_ptr<Stmt> varDeclaration(){
+        Token name = try_consume(TokenType::IDENTIFIER, "Expect variable name.");
+        std::optional<std::unique_ptr<Expr>> initializer;
+        if(match({TokenType::EQUAL})){
+            initializer = expression();
+            if(!initializer) {
+                throw error(peek(), "Expect expression after '='.");
+            }
+        }
+        try_consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
+        if(!initializer) {
+            initializer = std::make_unique<Literal>(std::monostate{});
+        }
+        return std::make_unique<Var>(name, std::move(initializer.value()));
+    }
 
     std::optional<std::unique_ptr<Stmt>> statement(){
         if(match({TokenType::PRINT})) return printStatement();
