@@ -81,14 +81,19 @@ int main(int argc, char *argv[]) {
             std::cerr << "Evaluating failed." << std::endl;
         }
     }else if(command == "run"){
-        Tokenizer tokenizer(file_contents, false);
-        std::vector<Token> tokens = tokenizer.tokenize();
-        Parser parser(tokens);
-        std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
-        if (!statements.empty()) {
-            interpret(statements);
-        } else {
-            std::cerr << "Executing failed." << std::endl;
+        try{
+            Tokenizer tokenizer(file_contents, false);
+            std::vector<Token> tokens = tokenizer.tokenize();
+            Parser parser(tokens);
+            std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
+            if (!statements.empty()) {
+                interpret(statements);
+            } else {
+                std::cerr << "Executing failed." << std::endl;
+                return 65;
+            }
+        }catch(const Parser::ParseError& e){
+            std::cerr << e.what() << std::endl;
             return 65;
         }
     } else {
