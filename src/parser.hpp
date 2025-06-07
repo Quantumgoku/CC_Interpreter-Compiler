@@ -53,7 +53,7 @@ private:
             return nullptr;
         }catch(ParseError error){
             synchronize();
-            return nullptr;
+            throw;
         }
     }
 
