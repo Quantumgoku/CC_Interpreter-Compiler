@@ -38,11 +38,7 @@ public:
     }
 
     literal visit(const Variable& expr) const override {
-        auto value = environment->getValue(expr.name);
-        if (std::holds_alternative<std::monostate>(value)) {
-            throw RuntimeError(expr.name, "Undefined variable '" + expr.name.getLexeme() + "'.");
-        }
-        return value;
+        return environment->getValue(expr.name);
     }
 
     void visit(const Var& stmt) const override {
