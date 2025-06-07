@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
                 Interpreter interpreter;
                 literal output = interpreter.evaluate(*expr);
                 std::cout << literal_to_string(output) << std::endl;
-            }catch(const Interpreter::RuntimeError& e){
+            }catch(const RuntimeError& e){
                 std::cerr << e.what() << "\n";
                 std::cerr << e.token.getLine() << std::endl;
                 return 70;
