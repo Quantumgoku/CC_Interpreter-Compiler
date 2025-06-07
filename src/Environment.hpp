@@ -7,7 +7,7 @@
 #include "token.hpp"
 #include "Expr.hpp"
 #include "Stmt.hpp"
-#include "interpreter.hpp"
+#include "RuntimeError.hpp"
 
 class Environment{
     std::map<std::string, literal> values;
@@ -21,6 +21,6 @@ public:
         if(it != values.end()){
             return it->second;
         }
-        throw Interpreter::RuntimeError(Token(TokenType::IDENTIFIER, name, std::monostate{}, 0), "Undefined variable '" + name + "'.");
+        throw RuntimeError(Token(TokenType::IDENTIFIER, name, std::monostate{}, 0), "Undefined variable '" + name + "'.");
     }
 };
