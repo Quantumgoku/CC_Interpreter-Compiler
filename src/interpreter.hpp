@@ -110,6 +110,12 @@ public:
         return std::monostate{};
     }
 
+    literal visit(const Assign& expr) const override {
+        literal value = evaluate(*expr.value);
+        environment.assign(expr.name, value);
+        return value;
+    }
+
 private:
 
     mutable Environment environment;

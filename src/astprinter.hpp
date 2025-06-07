@@ -49,6 +49,12 @@ public:
         oss << ")";
     }
 
+    void visit(const Assign& expr) const override {
+        oss << "(assign " << expr.name.getLexme() << " ";
+        expr.value->accept(*this);
+        oss << ")";
+    }
+
 private:
     mutable std::ostringstream oss;
 

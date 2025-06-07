@@ -6,6 +6,7 @@
 #include <memory>
 #include "token.hpp"
 
+
 class Expr;
 class ExprVisitorPrint;
 
@@ -19,6 +20,7 @@ public:
 };
 
 // Forward declarations
+struct Assign;
 struct Binary;
 struct Grouping;
 struct Literal;
@@ -27,6 +29,7 @@ struct Variable;
 
 class ExprVisitorPrint {
 public:
+    virtual void visit(const Assign& expr) const = 0;
     virtual void visit(const Binary& expr) const = 0;
     virtual void visit(const Grouping& expr) const = 0;
     virtual void visit(const Literal& expr) const = 0;
@@ -37,12 +40,22 @@ public:
 
 class ExprVisitorEval {
 public:
+    virtual literal visit(const Assign& expr) const = 0;
     virtual literal visit(const Binary& expr) const = 0;
     virtual literal visit(const Grouping& expr) const = 0;
     virtual literal visit(const Literal& expr) const = 0;
     virtual literal visit(const Unary& expr) const = 0;
     virtual literal visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorEval() = default;
+};
+
+class Assign : public Expr {
+public:
+    Assign(Token name, std::shared_ptr<Expr> value) : name(name), value(value) {}
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    Token name;
+    std::shared_ptr<Expr> value;
 };
 
 class Binary : public Expr {

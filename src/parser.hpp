@@ -70,7 +70,7 @@ private:
         if(!initializer) {
             initializer = std::make_unique<Literal>(std::monostate{});
         }
-        return std::make_unique<Var>(name, std::move(initializer.value()));
+        return std::make_unique<Var>(name, std::shared_ptr<Expr>(std::move(initializer.value())));
     }
 
     std::optional<std::unique_ptr<Stmt>> statement(){
@@ -83,14 +83,14 @@ private:
         std::optional<std::unique_ptr<Expr>> value = expression();
         try_consume(TokenType::SEMICOLON,"Expect ';' after value.");
         if(!value) return std::nullopt;
-        return std::make_unique<Print>(std::move(value.value()));
+        return std::make_unique<Print>(std::shared_ptr<Expr>(std::move(value.value())));
     }
 
     std::optional<std::unique_ptr<Stmt>> expressionStatement(){
         std::optional<std::unique_ptr<Expr>> expr = expression();
         try_consume(TokenType::SEMICOLON,"Expect ';' after expression.");
         if(!expr) return std::nullopt;
-        return std::make_unique<Expression>(std::move(expr.value()));
+        return std::make_unique<Expression>(std::shared_ptr<Expr>(std::move(expr.value())));
     }
 
     void synchronize(){
@@ -113,11 +113,26 @@ private:
     }
 
     std::optional<std::unique_ptr<Expr>> expression() {
+        return assignment();
+    }
+
+    std::optional<std::unique_ptr<Expr>> assignment(){
         std::optional<std::unique_ptr<Expr>> expr = equality();
-        if (expr) {
-            return std::move(expr);
+        if(!expr) return std::nullopt;
+
+        if(match({TokenType::EQUAL})){
+            Token equals = previous();
+            std::optional<std::unique_ptr<Expr>> value = assignment();
+            if(!value) return std::nullopt;
+
+            if(auto varExpr = dynamic_cast<Variable*>(expr->get())){
+                Token name = varExpr->name;
+                return std::make_unique<Assign>(name, std::move(value.value()));
+            }
+
+            throw error(equals, "Invalid assignment target.");
         }
-        return std::nullopt;
+        return expr;
     }
 
     std::optional<std::unique_ptr<Expr>> equality(){
