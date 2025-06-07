@@ -5,6 +5,7 @@
 #include<sstream>
 #include "Expr.hpp"
 #include "token.hpp"
+#include "Environment.hpp"
 
 class Interpreter : public ExprVisitorEval, public StmtVisitorPrint {
 public:
@@ -42,12 +43,21 @@ public:
     }
 
     literal visit(const Variable& expr) const override {
-        //Todo: Implement variable lookup
-        throw RuntimeError(expr.name, "Variable lookup not implemented.");
+        auto value = environment.get(expr.name.getLexme());
+        if(!value.has_value()){
+            throw RuntimeError(expr.name, "Undefined variable '" + expr.name.getLexme() + "'.");
+        }
+        return value.value();
     }
 
     void visit(const Var& stmt) const override {
-        
+        literal value;
+        if(stmt.initializer != nullptr){
+            value = evaluate(*stmt.initializer);
+        } else {
+            value = std::monostate{};
+        }
+        environment.define(stmt.name.getLexme(), value);
     }
 
     literal visit(const Binary& expr) const override {
@@ -107,6 +117,9 @@ public:
     }
 
 private:
+
+    mutable Environment environment;
+
     mutable std::ostringstream oss;
     std::string literal_to_string(const literal& value) const {
         if (std::holds_alternative<std::monostate>(value)) return "nil";
