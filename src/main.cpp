@@ -95,6 +95,9 @@ int main(int argc, char *argv[]) {
         }catch(const Parser::ParseError& e){
             std::cerr << e.what() << std::endl;
             return 65;
+        }catch(const std::exception& e){
+            std::cerr << e.what() << std::endl;
+            return 65;
         }
     } else {
         std::cerr << "Unknown command: " << command << std::endl;
