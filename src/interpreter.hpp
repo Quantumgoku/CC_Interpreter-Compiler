@@ -37,7 +37,7 @@ public:
     }
 
     literal visit(const Variable& expr) const override {
-        auto value = environment.get(expr.name.getLexme());
+        auto value = environment->get(expr.name.getLexme());
         if(!value.has_value()){
             throw RuntimeError(expr.name, "Undefined variable '" + expr.name.getLexme() + "'.");
         }
@@ -51,7 +51,7 @@ public:
         } else {
             value = std::monostate{};
         }
-        environment.define(stmt.name.getLexme(), value);
+        environment->define(stmt.name.getLexme(), value);
     }
 
     literal visit(const Binary& expr) const override {
@@ -112,7 +112,7 @@ public:
 
     literal visit(const Assign& expr) const override {
         literal value = evaluate(*expr.value);
-        environment.assign(expr.name, value);
+        environment->assign(expr.name, value);
         return value;
     }
 
@@ -123,16 +123,16 @@ public:
 
     
 private:
-    
+    mutable std::shared_ptr<Environment> environment;
+
     void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment) const {
-        Environment previous = this->environment;
-        this->environment = *environment;
+        auto previous = this->environment;
+        this->environment = environment;
         for(const auto& statement : statements){
             execute(*statement);
         }
         this->environment = previous; // Restore the previous environment
     }
-    mutable Environment environment;
 
     mutable std::ostringstream oss;
     std::string literal_to_string(const literal& value) const {
@@ -162,4 +162,6 @@ private:
         if(std::holds_alternative<bool>(object)) return std::get<bool>(object);
         return true;
     }
+
+    Interpreter() : environment(std::make_shared<Environment>()) {}
 };
