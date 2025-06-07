@@ -200,7 +200,7 @@ private:
             return std::make_unique<Grouping>(std::move(expr.value()));
         }
         if(match({TokenType::IDENTIFIER})){
-            return std::make_unique<Literal>(previous().getLexme());
+            return std::make_unique<Variable>(previous());
         }else{
             std::string lexme = peek().getLexme();
             if (lexme.empty()) lexme = "unknown";
