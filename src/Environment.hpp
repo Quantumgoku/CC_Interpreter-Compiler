@@ -11,12 +11,12 @@
 
 class Environment{
 private:
-    Environment* enclosing = nullptr;
+    std::shared_ptr<Environment> enclosing;
     std::map<std::string, literal> values;
 public:
 
     Environment() = default;
-    Environment(Environment* enclosing) : enclosing(enclosing) {}
+    Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {}
 
     void define(const std::string& name, const literal& value){
         values[name] = value;
