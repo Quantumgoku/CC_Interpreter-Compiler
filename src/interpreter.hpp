@@ -10,6 +10,7 @@
 
 class Interpreter : public ExprVisitorEval, public StmtVisitorPrint {
 public:
+    Interpreter() : environment(std::make_shared<Environment>()) {}
 
     void visit(const Expression& stmt) const override {
         evaluate(*stmt.expression);
@@ -24,7 +25,7 @@ public:
         stmt.accept(*this);
     }
 
-    literal evaluate(const Expr& expr) const{
+    literal evaluate(const Expr& expr) const {
         return expr.accept(*this);
     }
 
@@ -51,7 +52,6 @@ public:
         } else {
             value = std::monostate{};
         }
-        std::cerr << "Defining variable: " << stmt.name.getLexme() << std::endl;
         environment->define(stmt.name.getLexme(), value);
     }
 
@@ -67,7 +67,6 @@ public:
                     return std::get<std::string>(left) + std::get<std::string>(right);
                 }
                 throw RuntimeError(expr.op, "Operands must be two numbers or two strings.");
-            
             case TokenType::MINUS:
                 checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) - std::get<double>(right);
@@ -99,7 +98,6 @@ public:
 
     literal visit(const Unary& expr) const override {
         literal right = evaluate(*expr.right);
-
         switch(expr.op.getType()){
             case TokenType::MINUS:
                 checkNumberOperand(expr.op, {right});
@@ -107,7 +105,6 @@ public:
             case TokenType::BANG:
                 return !isTruthy(right);
         }  
-        
         return std::monostate{};
     }
 
@@ -122,8 +119,6 @@ public:
         return;
     }
 
-    Interpreter() : environment(std::make_shared<Environment>()) {}
-    
 private:
     mutable std::shared_ptr<Environment> environment;
 
