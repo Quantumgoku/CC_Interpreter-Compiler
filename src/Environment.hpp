@@ -10,8 +10,14 @@
 #include "RuntimeError.hpp"
 
 class Environment{
+private:
+    Environment* enclosing = nullptr;
     std::map<std::string, literal> values;
 public:
+
+    Environment() = default;
+    Environment(Environment* enclosing) : enclosing(enclosing) {}
+
     void define(const std::string& name, const literal& value){
         values[name] = value;
     }
@@ -20,15 +26,21 @@ public:
         auto it = values.find(name.getLexme());
         if(it != values.end()){
             it->second = value;
-        } else {
-            throw RuntimeError(name, "Undefined variable '" + name.getLexme() + "'.");
         }
+        else if(enclosing != nullptr){
+            enclosing->assign(name, value);
+            return;
+        }
+        throw RuntimeError(name, "Undefined variable '" + name.getLexme() + "'.");
     }
 
     std::optional<literal> get(const std::string& name) const {
         auto it = values.find(name);
         if(it != values.end()){
             return it->second;
+        }
+        if(enclosing != nullptr){
+            return enclosing->get(name);
         }
         throw RuntimeError(Token(TokenType::IDENTIFIER, name, std::monostate{}, 0), "Undefined variable '" + name + "'.");
     }

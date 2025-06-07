@@ -20,7 +20,7 @@ public:
         std::cout<< literal_to_string(value) << std::endl;
     }
 
-    void execute(Stmt& stmt){
+    void execute(Stmt& stmt) const {
         stmt.accept(*this);
     }
 
@@ -116,8 +116,22 @@ public:
         return value;
     }
 
-private:
+    void visit(const Block& stmt) const override {
+        executeBlock(stmt.statements, std::make_shared<Environment>(environment));
+        return;
+    }
 
+    
+private:
+    
+    void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment) const {
+        Environment previous = this->environment;
+        this->environment = *environment;
+        for(const auto& statement : statements){
+            execute(*statement);
+        }
+        this->environment = previous; // Restore the previous environment
+    }
     mutable Environment environment;
 
     mutable std::ostringstream oss;

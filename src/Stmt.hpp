@@ -21,12 +21,14 @@ public:
 };
 
 // Forward declarations
+struct Block;
 struct Expression;
 struct Print;
 struct Var;
 
 class StmtVisitorPrint {
 public:
+    virtual void visit(const Block& stmt) const = 0;
     virtual void visit(const Expression& stmt) const = 0;
     virtual void visit(const Print& stmt) const = 0;
     virtual void visit(const Var& stmt) const = 0;
@@ -35,10 +37,19 @@ public:
 
 class StmtVisitorEval {
 public:
+    virtual literal visit(const Block& stmt) const = 0;
     virtual literal visit(const Expression& stmt) const = 0;
     virtual literal visit(const Print& stmt) const = 0;
     virtual literal visit(const Var& stmt) const = 0;
     virtual ~StmtVisitorEval() = default;
+};
+
+class Block : public Stmt {
+public:
+    Block(std::vector<std::shared_ptr<Stmt>> statements) : statements(statements) {}
+    void accept(const StmtVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const StmtVisitorEval& visitor) const override { return visitor.visit(*this); }
+    std::vector<std::shared_ptr<Stmt>> statements;
 };
 
 class Expression : public Stmt {

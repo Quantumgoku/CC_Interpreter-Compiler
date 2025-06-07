@@ -75,8 +75,21 @@ private:
 
     std::optional<std::unique_ptr<Stmt>> statement(){
         if(match({TokenType::PRINT})) return printStatement();
+        if(match({TokenType::LEFT_BRACE})){
+            return std::make_unique<Block>(block());
+        }
 
         return expressionStatement();
+    }
+
+    std::vector<std::shared_ptr<Stmt>> block(){
+        std::vector<std::shared_ptr<Stmt>> statements;
+        while(!check(TokenType::RIGHT_BRACE) && !isAtEnd()){
+            statements.push_back(declaration());
+        }
+
+        try_consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
     }
 
     std::optional<std::unique_ptr<Stmt>> printStatement(){
