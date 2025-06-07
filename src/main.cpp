@@ -20,7 +20,7 @@ void interpret(const std::vector<std::unique_ptr<Stmt>>& statements){
     }catch(const Interpreter::RuntimeError& e){
         std::cerr << e.what() << "\n";
         std::cerr << e.token.getLine() << std::endl;
-        exit(65);
+        exit(70);
     }
 }
 
