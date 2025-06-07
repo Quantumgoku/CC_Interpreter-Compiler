@@ -19,7 +19,7 @@ public:
     Environment() = default;
     Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {}
 
-    void define(const std::string& name, const literal& value){
+    void define(const std::string& name, const literal& value = literal()){
         values[name] = value;
     }
 
