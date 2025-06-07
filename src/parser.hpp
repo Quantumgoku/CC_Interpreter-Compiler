@@ -201,11 +201,10 @@ private:
         }
         if(match({TokenType::IDENTIFIER})){
             return std::make_unique<Literal>(previous().getLexme());
-        }
-        {
+        }else{
             std::string lexme = peek().getLexme();
             if (lexme.empty()) lexme = "unknown";
-            std::cerr << "[line " << peek().getLine() << "] Error: Unexpected token: " << lexme << std::endl;
+            throw error(peek(), "Unexpected token: '" + lexme + "'. Expected an expression.");
         }
         return std::nullopt;
     }
