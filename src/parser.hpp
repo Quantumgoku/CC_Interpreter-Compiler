@@ -28,10 +28,13 @@ public:
         return nullptr;
     }
 
-    std::vector<std::unique_ptr<Stmt>> parse(){
-        std::vector<std::unique_ptr<Stmt>> statements;
+    std::vector<std::shared_ptr<Stmt>> parse(){
+        std::vector<std::shared_ptr<Stmt>> statements;
         while(!isAtEnd()){
-            statements.push_back(declaration());
+            auto stmt = declaration();
+            if (stmt) {
+                statements.push_back(std::shared_ptr<Stmt>(std::move(stmt)));
+            }
         }
         return statements;
     }
@@ -85,7 +88,10 @@ private:
     std::vector<std::shared_ptr<Stmt>> block(){
         std::vector<std::shared_ptr<Stmt>> statements;
         while(!check(TokenType::RIGHT_BRACE) && !isAtEnd()){
-            statements.push_back(declaration());
+            auto stmt = declaration();
+            if (stmt) {
+                statements.push_back(std::shared_ptr<Stmt>(std::move(stmt)));
+            }
         }
 
         try_consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");

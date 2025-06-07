@@ -12,7 +12,7 @@
 std::string read_file_contents(const std::string& filename);
 std::string literal_to_string(const literal& value);
 
-void interpret(const std::vector<std::unique_ptr<Stmt>>& statements){
+void interpret(const std::vector<std::shared_ptr<Stmt>>& statements){
     Interpreter interpreter;
     for(const auto& statement : statements){
         interpreter.execute(*statement);
@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
             Tokenizer tokenizer(file_contents, false);
             std::vector<Token> tokens = tokenizer.tokenize();
             Parser parser(tokens);
-            std::vector<std::unique_ptr<Stmt>> statements = parser.parse();
+            std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
             if (!statements.empty()) {
                 interpret(statements);
             } else {
