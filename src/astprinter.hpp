@@ -12,6 +12,10 @@ public:
         return oss.str();
     }
 
+    void visit(const Variable& expr) const override {
+        oss << "(var " << expr.name.getLexme() << ")";
+    }
+
     void visit(const Binary& expr) const override {
         parenthesize(expr.op.getLexme(), {expr.left, expr.right});
     }

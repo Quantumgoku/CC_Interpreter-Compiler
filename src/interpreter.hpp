@@ -41,6 +41,15 @@ public:
         return evaluate(*expr.expression);
     }
 
+    literal visit(const Variable& expr) const override {
+        //Todo: Implement variable lookup
+        throw RuntimeError(expr.name, "Variable lookup not implemented.");
+    }
+
+    void visit(const Var& stmt) const override {
+        
+    }
+
     literal visit(const Binary& expr) const override {
         literal left = evaluate(*expr.left);
         literal right = evaluate(*expr.right);
