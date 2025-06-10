@@ -231,11 +231,11 @@ private:
         std::optional<std::unique_ptr<Expr>> expr = equality();
         if(!expr) return std::nullopt;
 
-        if(match({TokenType::AND})){
+        while(match({TokenType::AND})){
             Token op = previous();
             std::optional<std::unique_ptr<Expr>> right = equality();
             if(!right) return std::nullopt;
-            return std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
+            expr = std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
         }
         return expr;
     }
