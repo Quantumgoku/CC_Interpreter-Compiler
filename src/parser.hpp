@@ -177,7 +177,7 @@ private:
         return assignment();
     }
 
-    std::optional<std::unique_ptr<Expr>> and(){
+    std::optional<std::unique_ptr<Expr>> andExpr(){
         std::optional<std::unique_ptr<Expr>> expr = equality();
         if(!expr) return std::nullopt;
 
@@ -190,13 +190,13 @@ private:
         return expr;
     }
 
-    std::optional<std::unique_ptr<Expr>> or(){
-        std::optional<std::unique_ptr<Expr>> expr = and();
+    std::optional<std::unique_ptr<Expr>> orExpr(){
+        std::optional<std::unique_ptr<Expr>> expr = andExpr();
         if(!expr) return std::nullopt;
 
         while(match({TokenType::OR})){
             Token op = previous();
-            std::optional<std::unique_ptr<Expr>> right = and();
+            std::optional<std::unique_ptr<Expr>> right = andExpr();
             if(!right) return std::nullopt;
             expr = std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
         }
@@ -204,7 +204,7 @@ private:
     }
 
     std::optional<std::unique_ptr<Expr>> assignment(){
-        std::optional<std::unique_ptr<Expr>> expr = or();
+        std::optional<std::unique_ptr<Expr>> expr = orExpr();
         if(!expr) return std::nullopt;
 
         if(match({TokenType::EQUAL})){

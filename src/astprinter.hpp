@@ -55,6 +55,10 @@ public:
         oss << ")";
     }
 
+    void visit(const Logical& expr) const override {
+        parenthesize(expr.op.getLexeme(), {expr.left, expr.right});
+    }
+
 private:
     mutable std::ostringstream oss;
 
