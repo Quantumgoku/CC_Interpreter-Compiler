@@ -41,6 +41,22 @@ public:
         return environment->getValue(expr.name);
     }
 
+    literal visit(const Logical& expr) const override {
+        literal left = evaluate(*expr.left);
+        if(expr.op.getType() == TokenType::OR){
+            if(isTruthy(left)) return left; // Short-circuit evaluation for OR
+        } else if(expr.op.getType() == TokenType::AND){
+            if(!isTruthy(left)) return left; // Short-circuit evaluation for AND
+        }
+        literal right = evaluate(*expr.right);
+        if(expr.op.getType() == TokenType::OR){
+            return isTruthy(right) ? right : left; // Return the first truthy value
+        } else if(expr.op.getType() == TokenType::AND){
+            return isTruthy(left) ? right : left; // Return the first falsy value
+        }
+        throw RuntimeError(expr.op, "Unknown logical operator.");
+    }
+
     void visit(const Var& stmt) const override {
         literal value;
         if(stmt.initializer != nullptr){
@@ -114,6 +130,21 @@ public:
     void visit(const Block& stmt) const override {
         executeBlock(stmt.statements, std::make_shared<Environment>(environment));
         return;
+    }
+
+    void visit(const If& stmt) const override {
+        literal condition = evaluate(*stmt.condition);
+        if(isTruthy(condition)){
+            executeBlock({stmt.thenBranch}, environment);
+        }else if(stmt.elseBranch != nullptr){
+            executeBlock({stmt.elseBranch}, environment);
+        }
+    }
+
+    void visit(const While& stmt) const override {
+        while(isTruthy(evaluate(*stmt.condition))){
+            executeBlock({stmt.body}, environment);
+        }
     }
 
 private:

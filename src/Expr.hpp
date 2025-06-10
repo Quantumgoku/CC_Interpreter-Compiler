@@ -24,6 +24,7 @@ struct Assign;
 struct Binary;
 struct Grouping;
 struct Literal;
+struct Logical;
 struct Unary;
 struct Variable;
 
@@ -33,6 +34,7 @@ public:
     virtual void visit(const Binary& expr) const = 0;
     virtual void visit(const Grouping& expr) const = 0;
     virtual void visit(const Literal& expr) const = 0;
+    virtual void visit(const Logical& expr) const = 0;
     virtual void visit(const Unary& expr) const = 0;
     virtual void visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorPrint() = default;
@@ -44,6 +46,7 @@ public:
     virtual literal visit(const Binary& expr) const = 0;
     virtual literal visit(const Grouping& expr) const = 0;
     virtual literal visit(const Literal& expr) const = 0;
+    virtual literal visit(const Logical& expr) const = 0;
     virtual literal visit(const Unary& expr) const = 0;
     virtual literal visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorEval() = default;
@@ -83,6 +86,16 @@ public:
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
     literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::variant<std::monostate, std::string, double, bool> value;
+};
+
+class Logical : public Expr {
+public:
+    Logical(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right) : left(left), op(op), right(right) {}
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    std::shared_ptr<Expr> left;
+    Token op;
+    std::shared_ptr<Expr> right;
 };
 
 class Unary : public Expr {

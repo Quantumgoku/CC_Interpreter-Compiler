@@ -78,11 +78,53 @@ private:
 
     std::optional<std::unique_ptr<Stmt>> statement(){
         if(match({TokenType::PRINT})) return printStatement();
+        if(match({TokenType::WHILE})) return whileStatement();
+        if(match({TokenType::IF})) return ifStatement();
         if(match({TokenType::LEFT_BRACE})){
             return std::make_unique<Block>(block());
         }
 
         return expressionStatement();
+    }
+
+    std::optional<std::unique_ptr<Stmt>> whileStatement(){
+        try_consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+        std::optional<std::unique_ptr<Expr>> condition = expression();
+        try_consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
+        if(!condition) {
+            throw error(peek(), "Expect expression after 'while'.");
+        }
+
+        std::optional<std::unique_ptr<Stmt>> body = statement();
+        if(!body) {
+            throw error(peek(), "Expect statement after 'while' condition.");
+        }
+        return std::make_unique<While>(std::shared_ptr<Expr>(std::move(condition.value())),
+                                       std::shared_ptr<Stmt>(std::move(body.value())));
+    }
+
+    std::optional<std::unique_ptr<Stmt>> ifStatement(){
+        try_consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
+        std::optional<std::unique_ptr<Expr>> condition = expression();
+        try_consume(TokenType::RIGHT_PAREN, "Expect ')' after if condition.");
+        if(!condition) {
+            throw error(peek(), "Expect expression after 'if'.");
+        }
+
+        std::optional<std::unique_ptr<Stmt>> thenBranch = statement();
+        if(!thenBranch) {
+            throw error(peek(), "Expect statement after 'if' condition.");
+        }
+        std::optional<std::unique_ptr<Stmt>> elseBranch;
+        if(match({TokenType::ELSE})){
+            elseBranch = statement();
+            if(!elseBranch){
+                throw error(peek(), "Expect statement after 'else'.");
+            }
+        }
+        return std::make_unique<If>(std::shared_ptr<Expr>(std::move(condition.value())),
+                                    std::shared_ptr<Stmt>(std::move(thenBranch.value())),
+                                    elseBranch ? std::shared_ptr<Stmt>(std::move(elseBranch.value())) : nullptr);
     }
 
     std::vector<std::shared_ptr<Stmt>> block(){
@@ -135,8 +177,34 @@ private:
         return assignment();
     }
 
-    std::optional<std::unique_ptr<Expr>> assignment(){
+    std::optional<std::unique_ptr<Expr>> and(){
         std::optional<std::unique_ptr<Expr>> expr = equality();
+        if(!expr) return std::nullopt;
+
+        if(match({TokenType::AND})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = equality();
+            if(!right) return std::nullopt;
+            return std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
+        }
+        return expr;
+    }
+
+    std::optional<std::unique_ptr<Expr>> or(){
+        std::optional<std::unique_ptr<Expr>> expr = and();
+        if(!expr) return std::nullopt;
+
+        while(match({TokenType::OR})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = and();
+            if(!right) return std::nullopt;
+            expr = std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
+        }
+        return expr;
+    }
+
+    std::optional<std::unique_ptr<Expr>> assignment(){
+        std::optional<std::unique_ptr<Expr>> expr = or();
         if(!expr) return std::nullopt;
 
         if(match({TokenType::EQUAL})){
