@@ -79,12 +79,62 @@ private:
     std::optional<std::unique_ptr<Stmt>> statement(){
         if(match({TokenType::PRINT})) return printStatement();
         if(match({TokenType::WHILE})) return whileStatement();
+        if(match({TokenType::FOR})) return forStatement();
         if(match({TokenType::IF})) return ifStatement();
         if(match({TokenType::LEFT_BRACE})){
             return std::make_unique<Block>(block());
         }
 
         return expressionStatement();
+    }
+
+    std::optional<std::unique_ptr<Stmt>> forStatement(){
+        try_consume(TokenType::LEFT_PAREN, "Expect '(' after for.");
+
+        std::optional<std::unique_ptr<Stmt>> initializer;
+        if(match({TokenType::SEMICOLON})){
+            initializer = std::make_unique<Var>(Token(TokenType::IDENTIFIER, "", literal(), 0), std::make_unique<Literal>(std::monostate{}));
+        } else if(match({TokenType::VAR})){
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        std::optional<std::unique_ptr<Expr>> condition;
+        if(!check(TokenType::SEMICOLON)){
+            condition = expression();
+            if(!condition) {
+                throw error(peek(), "Expect expression after 'for' initializer.");
+            }
+            try_consume(TokenType::SEMICOLON, "Expect ';' after for condition.");
+        }
+
+        std::optional<std::unique_ptr<Expr>> increment;
+        if(!check(TokenType::RIGHT_PAREN)){
+            increment = expression();
+            if(!increment) {
+                throw error(peek(), "Expect expression after 'for' increment.");
+            }
+            try_consume(TokenType::RIGHT_PAREN, "Expect ')' after for increment.");
+        } else {
+            try_consume(TokenType::RIGHT_PAREN, "Expect ')' after for condition.");
+        }
+
+        std::optional<std::unique_ptr<Stmt>> body = statement();
+        if(!body) {
+            throw error(peek(), "Expect statement after 'for' condition.");
+        }
+        if(increment) {
+            body = std::make_unique<Block>(std::vector<std::shared_ptr<Stmt>>{
+                std::shared_ptr<Stmt>(std::move(body.value())),
+                std::make_shared<Expression>(std::shared_ptr<Expr>(std::move(increment.value())))
+            });
+        }
+        if(!condition) {
+            condition = std::make_unique<Literal>(std::monostate{});
+        }
+        return std::make_unique<While>(std::shared_ptr<Expr>(std::move(condition.value())),
+                                       std::shared_ptr<Stmt>(std::move(body.value())));
     }
 
     std::optional<std::unique_ptr<Stmt>> whileStatement(){
@@ -174,7 +224,7 @@ private:
     }
 
     std::optional<std::unique_ptr<Expr>> expression() {
-        return assignment();
+        return orExpr();
     }
 
     std::optional<std::unique_ptr<Expr>> andExpr(){
