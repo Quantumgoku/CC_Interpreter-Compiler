@@ -233,7 +233,7 @@ private:
 
         while(match({TokenType::AND})){
             Token op = previous();
-            std::optional<std::unique_ptr<Expr>> right = equality();
+            std::optional<std::unique_ptr<Expr>> right = assignment(); // <-- allow assignment on right
             if(!right) return std::nullopt;
             expr = std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
         }
