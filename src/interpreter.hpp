@@ -116,7 +116,6 @@ public:
     }
 
     literal visit(const Assign& expr) const override {
-        std::cerr << "[DEBUG] Assigning to: " << expr.name.getLexeme() << std::endl;
         literal value = evaluate(*expr.value);
         environment->assign(expr.name, value);
         return value;
