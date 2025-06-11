@@ -224,33 +224,7 @@ private:
     }
 
     std::optional<std::unique_ptr<Expr>> expression() {
-        return orExpr();
-    }
-
-    std::optional<std::unique_ptr<Expr>> andExpr(){
-        std::optional<std::unique_ptr<Expr>> expr = assignment();
-        if(!expr) return std::nullopt;
-
-        while(match({TokenType::AND})){
-            Token op = previous();
-            std::optional<std::unique_ptr<Expr>> right = assignment(); // <-- allow assignment on right
-            if(!right) return std::nullopt;
-            expr = std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
-        }
-        return expr;
-    }
-
-    std::optional<std::unique_ptr<Expr>> orExpr(){
-        std::optional<std::unique_ptr<Expr>> expr = andExpr();
-        if(!expr) return std::nullopt;
-
-        while(match({TokenType::OR})){
-            Token op = previous();
-            std::optional<std::unique_ptr<Expr>> right = andExpr();
-            if(!right) return std::nullopt;
-            expr = std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
-        }
-        return expr;
+        return assignment();
     }
 
     std::optional<std::unique_ptr<Expr>> assignment(){
@@ -268,6 +242,32 @@ private:
             }
 
             throw error(equals, "Invalid assignment target.");
+        }
+        return expr;
+    }
+
+    std::optional<std::unique_ptr<Expr>> orExpr(){
+        std::optional<std::unique_ptr<Expr>> expr = andExpr();
+        if(!expr) return std::nullopt;
+
+        while(match({TokenType::OR})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = andExpr();
+            if(!right) return std::nullopt;
+            expr = std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
+        }
+        return expr;
+    }
+
+    std::optional<std::unique_ptr<Expr>> andExpr(){
+        std::optional<std::unique_ptr<Expr>> expr = equality();
+        if(!expr) return std::nullopt;
+
+        while(match({TokenType::AND})){
+            Token op = previous();
+            std::optional<std::unique_ptr<Expr>> right = equality();
+            if(!right) return std::nullopt;
+            expr = std::make_unique<Logical>(std::move(expr.value()), op, std::move(right.value()));
         }
         return expr;
     }
