@@ -93,7 +93,7 @@ private:
 
         std::optional<std::unique_ptr<Stmt>> initializer;
         if(match({TokenType::SEMICOLON})){
-            initializer = std::make_unique<Var>(Token(TokenType::IDENTIFIER, "", literal(), 0), std::make_unique<Literal>(std::monostate{}));
+            initializer = std::nullopt;
         } else if(match({TokenType::VAR})){
             initializer = varDeclaration();
         } else {
@@ -106,8 +106,8 @@ private:
             if(!condition) {
                 throw error(peek(), "Expect expression after 'for' initializer.");
             }
-            try_consume(TokenType::SEMICOLON, "Expect ';' after for condition.");
         }
+        try_consume(TokenType::SEMICOLON, "Expect ';' after for condition.");
 
         std::optional<std::unique_ptr<Expr>> increment;
         if(!check(TokenType::RIGHT_PAREN)){
@@ -115,26 +115,38 @@ private:
             if(!increment) {
                 throw error(peek(), "Expect expression after 'for' increment.");
             }
-            try_consume(TokenType::RIGHT_PAREN, "Expect ')' after for increment.");
-        } else {
-            try_consume(TokenType::RIGHT_PAREN, "Expect ')' after for condition.");
         }
+        try_consume(TokenType::RIGHT_PAREN, "Expect ')' after for clauses.");
 
         std::optional<std::unique_ptr<Stmt>> body = statement();
         if(!body) {
             throw error(peek(), "Expect statement after 'for' condition.");
         }
+
+        // If increment exists, append it to the end of the loop body
         if(increment) {
-            body = std::make_unique<Block>(std::vector<std::shared_ptr<Stmt>>{
-                std::shared_ptr<Stmt>(std::move(body.value())),
-                std::make_shared<Expression>(std::shared_ptr<Expr>(std::move(increment.value())))
-            });
+            std::vector<std::shared_ptr<Stmt>> bodyStmts;
+            bodyStmts.push_back(std::shared_ptr<Stmt>(std::move(body.value())));
+            bodyStmts.push_back(std::make_shared<Expression>(std::shared_ptr<Expr>(std::move(increment.value()))));
+            body = std::make_unique<Block>(bodyStmts);
         }
+
+        // Condition defaults to true if omitted
         if(!condition) {
-            condition = std::make_unique<Literal>(std::monostate{});
+            condition = std::make_unique<Literal>(true);
         }
-        return std::make_unique<While>(std::shared_ptr<Expr>(std::move(condition.value())),
-                                       std::shared_ptr<Stmt>(std::move(body.value())));
+
+        auto whileStmt = std::make_unique<While>(std::shared_ptr<Expr>(std::move(condition.value())), std::shared_ptr<Stmt>(std::move(body.value())));
+
+        // If initializer exists, wrap in a block
+        if(initializer) {
+            std::vector<std::shared_ptr<Stmt>> stmts;
+            stmts.push_back(std::shared_ptr<Stmt>(std::move(initializer.value())));
+            stmts.push_back(std::move(whileStmt));
+            return std::make_unique<Block>(stmts);
+        } else {
+            return whileStmt;
+        }
     }
 
     std::optional<std::unique_ptr<Stmt>> whileStatement(){
