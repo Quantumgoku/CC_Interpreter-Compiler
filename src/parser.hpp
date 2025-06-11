@@ -228,7 +228,7 @@ private:
     }
 
     std::optional<std::unique_ptr<Expr>> andExpr(){
-        std::optional<std::unique_ptr<Expr>> expr = equality();
+        std::optional<std::unique_ptr<Expr>> expr = assignment();
         if(!expr) return std::nullopt;
 
         while(match({TokenType::AND})){
