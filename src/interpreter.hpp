@@ -44,17 +44,12 @@ public:
     literal visit(const Logical& expr) const override {
         literal left = evaluate(*expr.left);
         if(expr.op.getType() == TokenType::OR){
-            if(isTruthy(left)) return left; // Short-circuit evaluation for OR
+            if(isTruthy(left)) return left;
         } else if(expr.op.getType() == TokenType::AND){
-            if(!isTruthy(left)) return left; // Short-circuit evaluation for AND
+            if(!isTruthy(left)) return left;
         }
-        literal right = evaluate(*expr.right);
-        if(expr.op.getType() == TokenType::OR){
-            return isTruthy(right) ? right : left; // Return the first truthy value
-        } else if(expr.op.getType() == TokenType::AND){
-            return isTruthy(left) ? right : left; // Return the first falsy value
-        }
-        throw RuntimeError(expr.op, "Unknown logical operator.");
+        // Only evaluate right if needed (short-circuit)
+        return evaluate(*expr.right);
     }
 
     void visit(const Var& stmt) const override {
