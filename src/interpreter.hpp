@@ -130,9 +130,9 @@ public:
     void visit(const If& stmt) const override {
         literal condition = evaluate(*stmt.condition);
         if(isTruthy(condition)){
-            executeBlock({stmt.thenBranch}, environment);
+            if (stmt.thenBranch) execute(*stmt.thenBranch);
         }else if(stmt.elseBranch != nullptr){
-            executeBlock({stmt.elseBranch}, environment);
+            if (stmt.elseBranch) execute(*stmt.elseBranch);
         }
     }
 
