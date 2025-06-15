@@ -18,7 +18,7 @@ public:
     lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) const override;
 
     std::string toString() const override {
-        return declaration->name.getLexeme() + " (function)";
+        return "<fn " + declaration->name.getLexeme() + ">";
     }
 
     size_t arity() const override {
