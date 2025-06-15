@@ -217,8 +217,13 @@ public:
     void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment) const {
         auto previous = this->environment;
         this->environment = environment;
-        for(const auto& statement : statements){
-            execute(*statement);
+        try {
+            for(const auto& statement : statements){
+                execute(*statement);
+            }
+        } catch (const ReturnException&) {
+            this->environment = previous;
+            throw;
         }
         this->environment = previous;
     }
