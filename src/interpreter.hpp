@@ -238,7 +238,10 @@ private:
             } else {
                 std::ostringstream oss;
                 oss << std::fixed << std::setprecision(6) << d;
-                return oss.str();
+                std::string s = oss.str();
+                s.erase(s.find_last_not_of('0') + 1, std::string::npos);
+                if (!s.empty() && s.back() == '.') s.pop_back();
+                return s;
             }
         }
         if (std::holds_alternative<bool>(value)) return std::get<bool>(value) ? "true" : "false";
