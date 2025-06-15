@@ -87,9 +87,10 @@ private:
         try_consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
         try_consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
         std::vector<std::shared_ptr<Stmt>> body = block();
-        if(body.empty()) {
-            throw error(peek(), "Function body cannot be empty.");
-        }
+        // Remove the check that throws if the function body is empty
+        // if(body.empty()) {
+        //     throw error(peek(), "Function body cannot be empty.");
+        // }
         return std::make_shared<Function>(name, params, std::make_shared<Block>(body));
     }
 
