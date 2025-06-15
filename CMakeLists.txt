@@ -14,7 +14,9 @@ list(FILTER SOURCE_FILES EXCLUDE REGEX ".*astnodegenerator\\.cpp$")
 
 add_executable(interpreter ${SOURCE_FILES})
 
-# Add astnodegenerator as a separate executable, but do not build it by default
-add_executable(astnodegenerator src/astnodegenerator.cpp)
-set_target_properties(astnodegenerator PROPERTIES EXCLUDE_FROM_ALL TRUE)
+# Add astnodegenerator as a separate executable, but only if the file exists
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/astnodegenerator.cpp")
+  add_executable(astnodegenerator src/astnodegenerator.cpp)
+  set_target_properties(astnodegenerator PROPERTIES EXCLUDE_FROM_ALL TRUE)
+endif()
 # To build manually: cmake --build . --target astnodegenerator
