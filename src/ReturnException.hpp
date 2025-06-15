@@ -1,6 +1,7 @@
 #pragma once
 #include <exception>
 #include "token.hpp"
+#include "literal.hpp"
 
 class ReturnException : public std::exception {
 public:

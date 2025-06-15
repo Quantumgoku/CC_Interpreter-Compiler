@@ -1,10 +1,12 @@
 #pragma once
-#include<string>
-#include<variant>
-#include<optional>
-#include<memory>
-#include"LoxCallable.hpp"
-using literal = std::variant<std::monostate, std::string, double, bool, std::shared_ptr<LoxCallable>>;
+#include <string>
+#include <variant>
+#include <optional>
+#include <memory>
+#include "literal.hpp"
+
+class LoxCallable;
+
 enum class TokenType{
     // Single-character tokens.
     LEFT_PAREN,
