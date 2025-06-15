@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include "token.hpp"
+#include "Environment.hpp"
 #include "literal.hpp"
 
 class Interpreter; // Forward declaration

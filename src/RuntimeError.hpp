@@ -1,6 +1,7 @@
 #pragma once
 #include <stdexcept>
 #include "token.hpp"
+#include "literal.hpp"
 
 class RuntimeError : public std::runtime_error {
 public:

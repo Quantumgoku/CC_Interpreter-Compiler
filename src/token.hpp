@@ -3,6 +3,7 @@
 #include <variant>
 #include <optional>
 #include <memory>
+#include "LoxCallable.hpp"
 #include "literal.hpp"
 
 class LoxCallable;

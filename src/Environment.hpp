@@ -1,3 +1,5 @@
+#pragma once
+
 #include <map>
 #include <string>
 #include <vector>
@@ -6,10 +8,10 @@
 #include <iostream>
 #include <stdexcept>
 #include "token.hpp"
-#include "literal.hpp"
 #include "Expr.hpp"
 #include "Stmt.hpp"
 #include "RuntimeError.hpp"
+#include "literal.hpp"
 
 class Environment{
 private:

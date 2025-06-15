@@ -7,7 +7,6 @@
 #include "token.hpp"
 #include "literal.hpp"
 
-
 class Expr;
 class ExprVisitorPrint;
 

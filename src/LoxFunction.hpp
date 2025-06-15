@@ -3,6 +3,8 @@
 #include "LoxCallable.hpp"
 #include "interpreter.hpp"
 #include "Environment.hpp"
+#include "ReturnException.hpp"
+#include "literal.hpp"
 
 class LoxFunction : public LoxCallable {
     std::shared_ptr<Function> declaration;
