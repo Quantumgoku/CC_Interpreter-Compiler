@@ -5,6 +5,7 @@
 #include "ReturnException.hpp"
 #include "literal.hpp"
 #include "Stmt.hpp"
+#include "interpreter.hpp"
 
 class Interpreter; // Forward declaration
 
