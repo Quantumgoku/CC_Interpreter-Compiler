@@ -5,16 +5,15 @@
 
 class ReturnException : public std::exception {
 public:
-    explicit ReturnException(const literal& value) : value(value) {    
+    explicit ReturnException(const lox_literal& value) : value(value) {    
     }
 
     const char* what() const noexcept override {
         return "ReturnException";
     }
 
-    literal getValue() const {
+    lox_literal getValue() const {
         return value;
     }
-private:
-    literal value;
+    lox_literal value;
 };

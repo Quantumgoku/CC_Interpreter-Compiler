@@ -11,73 +11,75 @@
 #include "LoxClock.hpp"
 #include "LoxFunction.hpp"
 #include "ReturnException.hpp"
+#include "literal.hpp"
+#include "Stmt.hpp"
 
-class Interpreter : public ExprVisitorEval, public StmtVisitorPrint {
+class Interpreter : public ExprVisitorEval, public StmtVisitorEval {
 public:
     Interpreter() {
         globals->define("clock", std::make_shared<LoxClock>());
         environment = globals;
     }
 
-    void visit(const Expression& stmt) const override {
-        evaluate(*stmt.expression);
+    lox_literal visit(const Expression& stmt) const override {
+        return evaluate(*stmt.expression);
     }
 
-    void visit(const Print& stmt) const override {
-        literal value = evaluate(*stmt.expression);
-        std::cout<< literal_to_string(value) << std::endl;
+    lox_literal visit(const Print& stmt) const override {
+        lox_literal value = evaluate(*stmt.expression);
+        std::cout << literal_to_string(value) << std::endl;
+        return std::monostate{};
     }
 
     void execute(Stmt& stmt) const {
         stmt.accept(*this);
     }
 
-    literal evaluate(const Expr& expr) const {
+    lox_literal evaluate(const Expr& expr) const {
         return expr.accept(*this);
     }
 
-    literal visit(const Literal& expr) const override{
-        // Convert expr.value (variant without callable) to literal (variant with callable)
-        // by visiting and reconstructing the correct type
-        return std::visit([](auto&& arg) -> literal {
+    lox_literal visit(const Literal& expr) const override{
+        return std::visit([](auto&& arg) -> lox_literal {
             using T = std::decay_t<decltype(arg)>;
-            return literal(arg);
+            return lox_literal(arg);
         }, expr.value);
     }
 
-    literal visit(const Grouping& expr) const override {
+    lox_literal visit(const Grouping& expr) const override {
         return evaluate(*expr.expression);
     }
 
-    literal visit(const Variable& expr) const override {
+    lox_literal visit(const Variable& expr) const override {
         return environment->getValue(expr.name);
     }
 
-    literal visit(const Logical& expr) const override {
-        literal left = evaluate(*expr.left);
-        if(expr.op.getType() == TokenType::OR){
+    lox_literal visit(const Logical& expr) const override {
+        lox_literal left = evaluate(*expr.left);
+        if(expr.op.getTokenType() == TokenType::OR){
             if(isTruthy(left)) return left;
-        } else if(expr.op.getType() == TokenType::AND){
+        } else if(expr.op.getTokenType() == TokenType::AND){
             if(!isTruthy(left)) return left;
         }
         // Only evaluate right if needed (short-circuit)
         return evaluate(*expr.right);
     }
 
-    void visit(const Var& stmt) const override {
-        literal value;
-        if(stmt.initializer != nullptr){
+    lox_literal visit(const Var& stmt) const override {
+        lox_literal value;
+        if (stmt.initializer != nullptr) {
             value = evaluate(*stmt.initializer);
         } else {
             value = std::monostate{};
         }
         environment->define(stmt.name.getLexeme(), value);
+        return std::monostate{};
     }
 
-    literal visit(const Binary& expr) const override {
-        literal left = evaluate(*expr.left);
-        literal right = evaluate(*expr.right);
-        switch(expr.op.getType()){
+    lox_literal visit(const Binary& expr) const override {
+        lox_literal left = evaluate(*expr.left);
+        lox_literal right = evaluate(*expr.right);
+        switch(expr.op.getTokenType()){
             case TokenType::PLUS:
                 if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
                     throw RuntimeError(expr.op, "Operands must not be functions.");
@@ -131,9 +133,9 @@ public:
         return std::monostate{};
     }
 
-    literal visit(const Unary& expr) const override {
-        literal right = evaluate(*expr.right);
-        switch(expr.op.getType()){
+    lox_literal visit(const Unary& expr) const override {
+        lox_literal right = evaluate(*expr.right);
+        switch(expr.op.getTokenType()){
             case TokenType::MINUS:
                 checkNumberOperand(expr.op, {right});
                 return -(std::get<double>(right));
@@ -143,15 +145,15 @@ public:
         return std::monostate{};
     }
 
-    literal visit(const Assign& expr) const override {
-        literal value = evaluate(*expr.value);
+    lox_literal visit(const Assign& expr) const override {
+        lox_literal value = evaluate(*expr.value);
         environment->assign(expr.name, value);
         return value;
     }
 
-    literal visit(const Call& expr) const override {
-        literal callee = evaluate(*expr.callee);
-        std::vector<literal> arguments;
+    lox_literal visit(const Call& expr) const override {
+        lox_literal callee = evaluate(*expr.callee);
+        std::vector<lox_literal> arguments;
 
         for(const auto& arg : expr.arguments){
             arguments.push_back(evaluate(*arg));
@@ -170,15 +172,15 @@ public:
         return (*functionPtr)->call(*this, arguments);
     }
 
-    void visit(const Function& stmt) const override {
+    lox_literal visit(const Function& stmt) const override {
         auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), std::make_shared<Environment>(environment));
         environment->define(stmt.name.getLexeme(), function);
-        return;
+        return std::monostate{};
     }
 
-    void visit(const Return& stmt) const override {
-        literal value;
-        if(stmt.value != nullptr){
+    lox_literal visit(const Return& stmt) const override {
+        lox_literal value;
+        if (stmt.value != nullptr) {
             value = evaluate(*stmt.value);
         } else {
             value = std::monostate{};
@@ -186,24 +188,26 @@ public:
         throw ReturnException(value);
     }
 
-    void visit(const Block& stmt) const override {
+    lox_literal visit(const Block& stmt) const override {
         executeBlock(stmt.statements, std::make_shared<Environment>(environment));
-        return;
+        return std::monostate{};
     }
 
-    void visit(const If& stmt) const override {
-        literal condition = evaluate(*stmt.condition);
-        if(isTruthy(condition)){
+    lox_literal visit(const If& stmt) const override {
+        lox_literal condition = evaluate(*stmt.condition);
+        if (isTruthy(condition)) {
             if (stmt.thenBranch) execute(*stmt.thenBranch);
-        }else if(stmt.elseBranch != nullptr){
+        } else if (stmt.elseBranch != nullptr) {
             if (stmt.elseBranch) execute(*stmt.elseBranch);
         }
+        return std::monostate{};
     }
 
-    void visit(const While& stmt) const override {
-        while(isTruthy(evaluate(*stmt.condition))){
+    lox_literal visit(const While& stmt) const override {
+        while (isTruthy(evaluate(*stmt.condition))) {
             executeBlock({stmt.body}, environment);
         }
+        return std::monostate{};
     }
 
 public:
@@ -224,13 +228,18 @@ private:
     mutable std::shared_ptr<Environment> environment = globals;
 
     mutable std::ostringstream oss;
-    std::string literal_to_string(const literal& value) const {
+    std::string literal_to_string(const lox_literal& value) const {
         if (std::holds_alternative<std::monostate>(value)) return "nil";
         if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);
         if (std::holds_alternative<double>(value)) {
-            std::ostringstream oss;
-            oss << std::get<double>(value);
-            return oss.str();
+            double d = std::get<double>(value);
+            if (d == static_cast<int64_t>(d)) {
+                return std::to_string(static_cast<int64_t>(d));
+            } else {
+                std::ostringstream oss;
+                oss << std::fixed << std::setprecision(6) << d;
+                return oss.str();
+            }
         }
         if (std::holds_alternative<bool>(value)) return std::get<bool>(value) ? "true" : "false";
         if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
@@ -240,7 +249,7 @@ private:
         return "";
     }
 
-    void checkNumberOperand(const Token& op, std::initializer_list<literal> operands) const {
+    void checkNumberOperand(const Token& op, std::initializer_list<lox_literal> operands) const {
         for(auto operand : operands){
             if(!std::holds_alternative<double>(operand)){
                 throw RuntimeError(op, "Operands must be a number.");
@@ -248,7 +257,7 @@ private:
         }
     }
 
-    bool isTruthy(literal object) const {
+    bool isTruthy(lox_literal object) const {
         if(std::holds_alternative<std::monostate>(object)){
             return false;
         }

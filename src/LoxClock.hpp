@@ -1,6 +1,8 @@
 #pragma once
 #include <chrono>
 #include "LoxCallable.hpp"
+#include "interpreter.hpp"
+#include "literal.hpp"
 
 class LoxClock : public LoxCallable {
 public:
@@ -12,7 +14,7 @@ public:
         return 0; // Clock function takes no arguments
     }
 
-    literal call(const Interpreter& interpreter, const std::vector<literal>& arguments) const override {
+    lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) const override {
         // Get the current time in seconds since epoch
         auto now = std::chrono::system_clock::now();
         auto duration = now.time_since_epoch();

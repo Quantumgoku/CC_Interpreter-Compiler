@@ -8,9 +8,10 @@
 #include "astprinter.hpp"
 #include "interpreter.hpp"
 #include "RuntimeError.hpp"
+#include "literal.hpp"
 
 std::string read_file_contents(const std::string& filename);
-std::string literal_to_string(const literal& value);
+std::string literal_to_string(const lox_literal& value);
 
 void interpret(const std::vector<std::shared_ptr<Stmt>>& statements){
     Interpreter interpreter;
@@ -49,7 +50,7 @@ int main(int argc, char *argv[]) {
         Tokenizer Tokenizer(file_contents, false);
         std::vector<Token> tokens = Tokenizer.tokenize();
         Parser parser(tokens);
-        std::unique_ptr<Expr> expr = parser.parseExpr();
+        std::shared_ptr<Expr> expr = parser.parseExpr();
         if(expr){
             ASTPrinter printer;
             std::string output = printer.print(*expr);
@@ -63,11 +64,11 @@ int main(int argc, char *argv[]) {
         Tokenizer tokenizer(file_contents, false);
         std::vector<Token> tokens = tokenizer.tokenize();
         Parser parser(tokens);
-        std::unique_ptr<Expr> expr = parser.parseExpr();
+        std::shared_ptr<Expr> expr = parser.parseExpr();
         if (expr) {
             try{
                 Interpreter interpreter;
-                literal output = interpreter.evaluate(*expr);
+                lox_literal output = interpreter.evaluate(*expr);
                 std::cout << literal_to_string(output) << std::endl;
             }catch(const RuntimeError& e){
                 std::cerr << e.what() << "\n";
@@ -111,13 +112,18 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-std::string literal_to_string(const literal& value) {
+std::string literal_to_string(const lox_literal& value) {
     if (std::holds_alternative<std::monostate>(value)) return "nil";
     if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);
     if (std::holds_alternative<double>(value)) {
-        std::ostringstream oss;
-        oss << std::get<double>(value);
-        return oss.str();
+        double d = std::get<double>(value);
+        if (d == static_cast<int64_t>(d)) {
+            return std::to_string(static_cast<int64_t>(d));
+        } else {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(6) << d;
+            return oss.str();
+        }
     }
     if (std::holds_alternative<bool>(value)) return std::get<bool>(value) ? "true" : "false";
     if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {

@@ -8,25 +8,25 @@
 #include <iostream>
 #include <stdexcept>
 #include "token.hpp"
-#include "Expr.hpp"
-#include "Stmt.hpp"
-#include "RuntimeError.hpp"
 #include "literal.hpp"
+#include <unordered_map>
+#include <memory>
+#include "RuntimeError.hpp"
 
 class Environment{
 private:
     std::shared_ptr<Environment> enclosing;
-    std::map<std::string, literal> values;
+    std::map<std::string, lox_literal> values;
 public:
 
     Environment() = default;
     Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {}
 
-    void define(const std::string& name, const literal& value = literal()){
+    void define(const std::string& name, const lox_literal& value = lox_literal()){
         values[name] = value;
     }
 
-    literal getValue(const Token& name) const {
+    lox_literal getValue(const Token& name) const {
         const std::string& key = name.getLexeme();
         auto it = values.find(key);
         if(it != values.end()){
@@ -38,7 +38,7 @@ public:
         throw RuntimeError(name, "Undefined variable '" + key + "'.");
     }
 
-    void assign(const Token& name, const literal& value) {
+    void assign(const Token& name, const lox_literal& value) {
         const std::string& key = name.getLexeme();
         auto it = values.find(key);
         if(it != values.end()){

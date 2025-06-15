@@ -3,81 +3,26 @@
 #include <variant>
 #include <optional>
 #include <memory>
-#include "LoxCallable.hpp"
 #include "literal.hpp"
 
-class LoxCallable;
-
-enum class TokenType{
-    // Single-character tokens.
-    LEFT_PAREN,
-    RIGHT_PAREN,
-    LEFT_BRACE,
-    RIGHT_BRACE,
-    COMMA,
-    DOT,
-    MINUS,
-    PLUS,
-    SEMICOLON,
-    SLASH,
-    STAR,
-    // One or two character tokens.
-    BANG,
-    BANG_EQUAL,
-    EQUAL,
-    EQUAL_EQUAL,
-    GREATER,
-    GREATER_EQUAL,
-    LESS,
-    LESS_EQUAL,
-    // Literals.
-    IDENTIFIER,
-    STRING,
-    NUMBER,
-    // Keywords.
-    AND,
-    CLASS,
-    ELSE,
-    FALSE,
-    FUN,
-    FOR,
-    IF,
-    NIL,
-    OR,
-    PRINT,
-    RETURN,
-    SUPER,
-    THIS,
-    TRUE,
-    VAR,
-    WHILE,
-    END_OF_FILE,
+enum class TokenType {
+    LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+    BANG, BANG_EQUAL, EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
+    IDENTIFIER, STRING, NUMBER,
+    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR, PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE, END_OF_FILE
 };
-class Token{
+
+class Token {
 public:
-    Token(TokenType type,std::string lexme, literal lit,int line){
-        this->type=type;
-        this->lexme=lexme;
-        this->lit=lit;
-        this->line=line;
-    }
+    Token(TokenType type, std::string lexeme, lox_literal lit, int line)
+        : type(type), lexeme(std::move(lexeme)), lit(std::move(lit)), line(line) {}
 
-    int getLength() const {
-        return lexme.length();
-    }
-
-    std::string getLexmeWithType() const {
-        return getStringType() + " " + lexme;
-    }
-
-    literal getLiteral() const {
-        return lit;
-    }
-
-    TokenType getTokenType() const {
-        return type;
-    }
-
+    int getLength() const { return static_cast<int>(lexeme.length()); }
+    std::string getLexeme() const { return lexeme; }
+    std::string getLexmeWithType() const { return getStringType() + " " + lexeme; }
+    lox_literal getLiteral() const { return lit; }
+    TokenType getTokenType() const { return type; }
+    int getLine() const { return line; }
     std::string getStringType() const {
         switch (type) {
             case TokenType::LEFT_PAREN: return "LEFT_PAREN";
@@ -118,25 +63,14 @@ public:
             case TokenType::TRUE: return "TRUE";
             case TokenType::VAR: return "VAR";
             case TokenType::WHILE: return "WHILE";
-            default:
-                throw std::runtime_error("Unknown token type");
+            case TokenType::END_OF_FILE: return "END_OF_FILE";
+            default: return "UNKNOWN";
         }
     }
-    TokenType getType() const {
-        return type;
-    }
-    std::string getLexeme() const {
-        return lexme;
-    }
-    literal getLit() const {
-        return lit;
-    }
-    int getLine() const {
-        return line;
-    }
+
 private:
     TokenType type;
-    std::string lexme;
-    literal lit;
+    std::string lexeme;
+    lox_literal lit;
     int line;
 };

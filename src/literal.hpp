@@ -3,4 +3,5 @@
 #include <string>
 #include <memory>
 
-class LoxCallable;
+class LoxCallable; // Forward declaration only
+using lox_literal = std::variant<std::monostate, double, std::string, bool, std::shared_ptr<LoxCallable>>;

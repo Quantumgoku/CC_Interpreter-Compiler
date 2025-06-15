@@ -4,6 +4,7 @@
 #include<string>
 #include<fstream>
 #include "token.hpp"
+#include "literal.hpp"
 #include<iomanip>
 #include<vector>
 #include<map>
@@ -199,9 +200,9 @@ private:
         return text[current++];
     }
     void addToken(TokenType type){
-        addToken(type, literal());
+        addToken(type, lox_literal());
     }
-    void addToken(TokenType type, literal lit){
+    void addToken(TokenType type, lox_literal lit) {
         std::string lexeme = text.substr(start, current - start);
         tokens.push_back(Token(type,lexeme,lit,line));
     }
@@ -231,13 +232,13 @@ private:
         while(isalnum(peek()) || peek()=='_'){
             buff+=consume();
         }
-        Token token = Token(TokenType::IDENTIFIER, buff, literal(), line);
+        Token token = Token(TokenType::IDENTIFIER, buff, lox_literal(), line);
         if(keywords.find(buff)!=keywords.end()){
             TokenType type = keywords[buff];
-            token = Token(type, buff, literal(), line);
+            token = Token(type, buff, lox_literal(), line);
             typeToPrint = token.getStringType();
         }
-        addToken(token.getType(), token.getLit());
+        addToken(token.getTokenType(), token.getLiteral());
         if(printToken){
             if(typeToPrint.empty()){
                 typeToPrint = "IDENTIFIER";
