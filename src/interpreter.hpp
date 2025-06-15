@@ -7,10 +7,17 @@
 #include "token.hpp"
 #include "Environment.hpp"
 #include "RuntimeError.hpp"
+#include "LoxCallable.hpp"
+#include "LoxClock.hpp"
+#include "LoxFunction.hpp"
+#include "ReturnException.hpp"
 
 class Interpreter : public ExprVisitorEval, public StmtVisitorPrint {
 public:
-    Interpreter() : environment(std::make_shared<Environment>()) {}
+    Interpreter() {
+        globals->define("clock", std::make_shared<LoxClock>());
+        environment = globals;
+    }
 
     void visit(const Expression& stmt) const override {
         evaluate(*stmt.expression);
@@ -30,7 +37,12 @@ public:
     }
 
     literal visit(const Literal& expr) const override{
-        return expr.value;
+        // Convert expr.value (variant without callable) to literal (variant with callable)
+        // by visiting and reconstructing the correct type
+        return std::visit([](auto&& arg) -> literal {
+            using T = std::decay_t<decltype(arg)>;
+            return literal(arg);
+        }, expr.value);
     }
 
     literal visit(const Grouping& expr) const override {
@@ -67,6 +79,8 @@ public:
         literal right = evaluate(*expr.right);
         switch(expr.op.getType()){
             case TokenType::PLUS:
+                if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
+                    throw RuntimeError(expr.op, "Operands must not be functions.");
                 if(std::holds_alternative<double>(left) && std::holds_alternative<double>(right)){
                     return std::get<double>(left) + std::get<double>(right);
                 }
@@ -75,12 +89,18 @@ public:
                 }
                 throw RuntimeError(expr.op, "Operands must be two numbers or two strings.");
             case TokenType::MINUS:
+                if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
+                    throw RuntimeError(expr.op, "Operands must not be functions.");
                 checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) - std::get<double>(right);
             case TokenType::STAR:
+                if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
+                    throw RuntimeError(expr.op, "Operands must not be functions.");
                 checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) * std::get<double>(right);
             case TokenType::SLASH:
+                if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
+                    throw RuntimeError(expr.op, "Operands must not be functions.");
                 checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) / std::get<double>(right);
             case TokenType::EQUAL_EQUAL:
@@ -88,15 +108,23 @@ public:
             case TokenType::BANG_EQUAL:
                 return left != right;
             case TokenType::GREATER:
+                if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
+                    throw RuntimeError(expr.op, "Operands must not be functions.");
                 checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) > std::get<double>(right);
             case TokenType::GREATER_EQUAL:
+                if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
+                    throw RuntimeError(expr.op, "Operands must not be functions.");
                 checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) >= std::get<double>(right);
             case TokenType::LESS:
+                if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
+                    throw RuntimeError(expr.op, "Operands must not be functions.");
                 checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) < std::get<double>(right);
             case TokenType::LESS_EQUAL:
+                if(std::holds_alternative<std::shared_ptr<LoxCallable>>(left) || std::holds_alternative<std::shared_ptr<LoxCallable>>(right))
+                    throw RuntimeError(expr.op, "Operands must not be functions.");
                 checkNumberOperand(expr.op, {left, right});
                 return std::get<double>(left) <= std::get<double>(right);
         }
@@ -121,6 +149,43 @@ public:
         return value;
     }
 
+    literal visit(const Call& expr) const override {
+        literal callee = evaluate(*expr.callee);
+        std::vector<literal> arguments;
+
+        for(const auto& arg : expr.arguments){
+            arguments.push_back(evaluate(arg));
+        }
+        if(!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)){
+            throw RuntimeError(expr.paren, "Can only call functions and classes.");
+        }
+        auto functionPtr = std::get_if<std::shared_ptr<LoxCallable>>(&callee);
+        if(functionPtr == nullptr || !(*functionPtr)){
+            throw RuntimeError(expr.paren, "Undefined function.");
+        }
+        if(arguments.size() != (*functionPtr)->arity()){
+            throw RuntimeError(expr.paren, "Expected " + std::to_string((*functionPtr)->arity()) + " arguments but got " + std::to_string(arguments.size()) + ".");
+        }
+
+        return (*functionPtr)->call(*this, arguments);
+    }
+
+    void visit(const Function& stmt) const override {
+        auto function = std::make_shared<LoxFunction>(stmt, std::make_shared<Environment>(environment));
+        environment->define(stmt.name.getLexeme(), function);
+        return;
+    }
+
+    void visit(const Return& stmt) const override {
+        literal value;
+        if(stmt.value != nullptr){
+            value = evaluate(*stmt.value);
+        } else {
+            value = std::monostate{};
+        }
+        throw ReturnException(value);
+    }
+
     void visit(const Block& stmt) const override {
         executeBlock(stmt.statements, std::make_shared<Environment>(environment));
         return;
@@ -141,17 +206,22 @@ public:
         }
     }
 
-private:
-    mutable std::shared_ptr<Environment> environment;
-
+public:
+    // Add a getter for globals
+    std::shared_ptr<Environment> getGlobals() const { return globals; }
+    // Add a public method to execute a block
     void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment) const {
         auto previous = this->environment;
         this->environment = environment;
         for(const auto& statement : statements){
             execute(*statement);
         }
-        this->environment = previous; // Restore the previous environment
+        this->environment = previous;
     }
+
+private:
+    std::shared_ptr<Environment> globals = std::make_shared<Environment>();
+    mutable std::shared_ptr<Environment> environment = globals;
 
     mutable std::ostringstream oss;
     std::string literal_to_string(const literal& value) const {
@@ -163,6 +233,10 @@ private:
             return oss.str();
         }
         if (std::holds_alternative<bool>(value)) return std::get<bool>(value) ? "true" : "false";
+        if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
+            auto fn = std::get<std::shared_ptr<LoxCallable>>(value);
+            return fn ? fn->toString() : "<fn>";
+        }
         return "";
     }
 

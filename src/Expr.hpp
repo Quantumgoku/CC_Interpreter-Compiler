@@ -26,6 +26,7 @@ struct Grouping;
 struct Literal;
 struct Logical;
 struct Unary;
+struct Call;
 struct Variable;
 
 class ExprVisitorPrint {
@@ -36,6 +37,7 @@ public:
     virtual void visit(const Literal& expr) const = 0;
     virtual void visit(const Logical& expr) const = 0;
     virtual void visit(const Unary& expr) const = 0;
+    virtual void visit(const Call& expr) const = 0;
     virtual void visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorPrint() = default;
 };
@@ -48,6 +50,7 @@ public:
     virtual literal visit(const Literal& expr) const = 0;
     virtual literal visit(const Logical& expr) const = 0;
     virtual literal visit(const Unary& expr) const = 0;
+    virtual literal visit(const Call& expr) const = 0;
     virtual literal visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorEval() = default;
 };
@@ -105,6 +108,16 @@ public:
     literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token op;
     std::shared_ptr<Expr> right;
+};
+
+class Call : public Expr {
+public:
+    Call(std::shared_ptr<Expr> callee, Token paren, std::vector<Expr> arguments) : callee(callee), paren(paren), arguments(arguments) {}
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    std::shared_ptr<Expr> callee;
+    Token paren;
+    std::vector<Expr> arguments;
 };
 
 class Variable : public Expr {

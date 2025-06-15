@@ -2,7 +2,9 @@
 #include<string>
 #include<variant>
 #include<optional>
-using literal = std::variant<std::monostate, std::string, double, bool>;
+#include<memory>
+#include"LoxCallable.hpp"
+using literal = std::variant<std::monostate, std::string, double, bool, std::shared_ptr<LoxCallable>>;
 enum class TokenType{
     // Single-character tokens.
     LEFT_PAREN,

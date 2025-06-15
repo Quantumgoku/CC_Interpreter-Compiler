@@ -59,6 +59,16 @@ public:
         parenthesize(expr.op.getLexeme(), {expr.left, expr.right});
     }
 
+    void visit(const Call& expr) const override {
+        oss << "(call ";
+        expr.callee->accept(*this);
+        for (const auto& arg : expr.arguments) {
+            oss << " ";
+            arg.accept(*this);
+        }
+        oss << ")";
+    }
+
 private:
     mutable std::ostringstream oss;
 

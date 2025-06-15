@@ -48,6 +48,7 @@ private:
 
     std::unique_ptr<Stmt> declaration(){
         try{
+            if(match({TokenType::FUN})) return function("function");
             if(match({TokenType::VAR})) return varDeclaration();
             auto stmtOpt = statement();
             if (stmtOpt) {
@@ -58,6 +59,29 @@ private:
             synchronize();
             throw;
         }
+    }
+
+    std::unique_ptr<Function> function(const std::string& kind){
+        Token name = try_consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
+        try_consume(TokenType::LEFT_PAREN, "Expect '(' after " + kind + " name.");
+
+        std::vector<Token> params;
+        if(!check(TokenType::RIGHT_PAREN)){
+            do {
+                if(params.size() >= 255) {
+                    throw error(peek(), "Cannot have more than 255 parameters.");
+                }
+                Token param = try_consume(TokenType::IDENTIFIER, "Expect parameter name.");
+                params.push_back(param);
+            } while(match({TokenType::COMMA}));
+        }
+        try_consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+        try_consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
+        std::vector<std::shared_ptr<Stmt>> body = block();
+        if(body.empty()) {
+            throw error(peek(), "Function body cannot be empty.");
+        }
+        return std::make_unique<Function>(name, params, std::make_shared<Block>(body));
     }
 
     std::unique_ptr<Stmt> varDeclaration(){
@@ -78,6 +102,7 @@ private:
 
     std::optional<std::unique_ptr<Stmt>> statement(){
         if(match({TokenType::PRINT})) return printStatement();
+        if(match({TokenType::RETURN})) return returnStatement();
         if(match({TokenType::WHILE})) return whileStatement();
         if(match({TokenType::FOR})) return forStatement();
         if(match({TokenType::IF})) return ifStatement();
@@ -187,6 +212,20 @@ private:
         return std::make_unique<If>(std::shared_ptr<Expr>(std::move(condition.value())),
                                     std::shared_ptr<Stmt>(std::move(thenBranch.value())),
                                     elseBranch ? std::shared_ptr<Stmt>(std::move(elseBranch.value())) : nullptr);
+    }
+
+    std::optional<std::unique_ptr<Stmt>> returnStatement(){
+        Token keyword = previous();
+        std::optional<std::unique_ptr<Expr>> value;
+        if(!check(TokenType::SEMICOLON)){
+            value = expression();
+            if(!value) {
+                throw error(peek(), "Expect expression after 'return'.");
+            }
+        }
+
+        try_consume(TokenType::SEMICOLON, "Expect ';' after return value.");
+        return std::make_unique<Return>(keyword, value ? std::shared_ptr<Expr>(std::move(value.value())) : std::make_shared<Literal>(std::monostate{}));
     }
 
     std::vector<std::shared_ptr<Stmt>> block(){
@@ -339,7 +378,38 @@ private:
             if(!right) return std::nullopt;
             return std::make_unique<Unary>(op, std::move(right.value()));
         }
-        return primary();
+        return call();
+    }
+
+    std::optional<std::unique_ptr<Expr>> call(){
+        std::optional<std::unique_ptr<Expr>> expr = primary();
+        if(!expr) return std::nullopt;
+
+        while(true){
+            if(match({TokenType::LEFT_PAREN})){
+                expr = finishCall(std::move(expr.value()));
+            }else{
+                break;
+            }
+        }
+        return expr;
+    }
+
+    std::unique_ptr<Expr> finishCall(std::unique_ptr<Expr> callee){
+        std::vector<std::unique_ptr<Expr>> arguments;
+
+        if(!check(TokenType::RIGHT_PAREN)){
+            do{
+                if(arguments.size() >= 255){
+                    throw error(peek(), "Cannot have more than 255 arguments.");
+                }
+                arguments.push_back(std::move(*expression()));
+            }while(match({TokenType::COMMA}));
+        }
+
+        Token paren = try_consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+
+        return std::make_unique<Call>(std::move(callee), paren, std::move(arguments));
     }
 
     std::optional<std::unique_ptr<Expr>> primary(){
