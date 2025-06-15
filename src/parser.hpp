@@ -396,20 +396,22 @@ private:
     }
 
     std::unique_ptr<Expr> finishCall(std::unique_ptr<Expr> callee){
-        std::vector<std::unique_ptr<Expr>> arguments;
+        std::vector<std::shared_ptr<Expr>> arguments;
 
         if(!check(TokenType::RIGHT_PAREN)){
             do{
                 if(arguments.size() >= 255){
                     throw error(peek(), "Cannot have more than 255 arguments.");
                 }
-                arguments.push_back(std::move(*expression()));
+                auto arg = expression();
+                if (!arg) throw error(peek(), "Expect argument expression.");
+                arguments.push_back(std::shared_ptr<Expr>(std::move(arg.value())));
             }while(match({TokenType::COMMA}));
         }
 
         Token paren = try_consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
 
-        return std::make_unique<Call>(std::move(callee), paren, std::move(arguments));
+        return std::make_unique<Call>(std::shared_ptr<Expr>(std::move(callee)), paren, std::move(arguments));
     }
 
     std::optional<std::unique_ptr<Expr>> primary(){

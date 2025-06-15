@@ -154,7 +154,7 @@ public:
         std::vector<literal> arguments;
 
         for(const auto& arg : expr.arguments){
-            arguments.push_back(evaluate(arg));
+            arguments.push_back(evaluate(*arg));
         }
         if(!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)){
             throw RuntimeError(expr.paren, "Can only call functions and classes.");
@@ -171,7 +171,7 @@ public:
     }
 
     void visit(const Function& stmt) const override {
-        auto function = std::make_shared<LoxFunction>(stmt, std::make_shared<Environment>(environment));
+        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), std::make_shared<Environment>(environment));
         environment->define(stmt.name.getLexeme(), function);
         return;
     }

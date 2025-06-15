@@ -20,14 +20,14 @@ public:
 };
 
 // Forward declarations
-struct Assign;
-struct Binary;
-struct Grouping;
-struct Literal;
-struct Logical;
-struct Unary;
-struct Call;
-struct Variable;
+class Assign;
+class Binary;
+class Grouping;
+class Literal;
+class Logical;
+class Unary;
+class Call;
+class Variable;
 
 class ExprVisitorPrint {
 public:
@@ -112,12 +112,13 @@ public:
 
 class Call : public Expr {
 public:
-    Call(std::shared_ptr<Expr> callee, Token paren, std::vector<Expr> arguments) : callee(callee), paren(paren), arguments(arguments) {}
+    Call(std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> arguments)
+        : callee(callee), paren(paren), arguments(arguments) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
     literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> callee;
     Token paren;
-    std::vector<Expr> arguments;
+    std::vector<std::shared_ptr<Expr>> arguments;
 };
 
 class Variable : public Expr {

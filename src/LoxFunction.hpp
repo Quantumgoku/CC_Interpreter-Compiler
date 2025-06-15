@@ -5,10 +5,11 @@
 #include "Environment.hpp"
 
 class LoxFunction : public LoxCallable {
-    std::unique_ptr<Function> declaration;
-    std::unique_ptr<Environment> closure;
-    public:
-    LoxFunction(std::unique_ptr<Function> declaration, std::unique_ptr<Environment> closure) : declaration(std::move(declaration)), closure(std::move(closure)) {}
+    std::shared_ptr<Function> declaration;
+    std::shared_ptr<Environment> closure;
+public:
+    LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment> closure)
+        : declaration(std::move(declaration)), closure(std::move(closure)) {}
 
     literal call(const Interpreter& interpreter, const std::vector<literal>& arguments) const override {
         auto environment = std::make_shared<Environment>(closure);
@@ -20,7 +21,7 @@ class LoxFunction : public LoxCallable {
             std::vector<std::shared_ptr<Stmt>> bodyVec = {declaration->body};
             interpreter.executeBlock(bodyVec, environment);
         } catch (const ReturnException& returnValue) {
-            throw returnValue.getValue(); // Rethrow the value from the return exception
+            return returnValue.getValue(); // Return the value from the return exception
         }
         return literal(std::monostate{});
     }
@@ -32,5 +33,4 @@ class LoxFunction : public LoxCallable {
     size_t arity() const override {
         return declaration->params.size();
     }
-
 };

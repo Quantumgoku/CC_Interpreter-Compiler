@@ -64,7 +64,7 @@ public:
         expr.callee->accept(*this);
         for (const auto& arg : expr.arguments) {
             oss << " ";
-            arg.accept(*this);
+            arg->accept(*this);
         }
         oss << ")";
     }
