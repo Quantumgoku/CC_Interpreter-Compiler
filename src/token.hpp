@@ -1,8 +1,5 @@
 #pragma once
-#include <string>
-#include <variant>
 #include <optional>
-#include <memory>
 #include "literal.hpp"
 
 enum class TokenType {

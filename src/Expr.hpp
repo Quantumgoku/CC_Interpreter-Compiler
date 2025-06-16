@@ -1,12 +1,10 @@
 #pragma once
 
-#include <string>
-#include <variant>
 #include <vector>
-#include <memory>
 #include "token.hpp"
 #include "literal.hpp"
 
+//forward declarations
 class Expr;
 class ExprVisitorPrint;
 

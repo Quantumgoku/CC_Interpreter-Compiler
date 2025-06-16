@@ -1,16 +1,11 @@
 #pragma once
 
 #include <map>
-#include <string>
 #include <vector>
-#include <variant>
-#include <optional>
 #include <iostream>
 #include <stdexcept>
 #include "token.hpp"
 #include "literal.hpp"
-#include <unordered_map>
-#include <memory>
 #include "RuntimeError.hpp"
 
 class Environment{

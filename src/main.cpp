@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
 #include "tokenizer.hpp"
 #include "parser.hpp"
 #include "astprinter.hpp"
@@ -17,7 +16,7 @@ void interpret(const std::vector<std::shared_ptr<Stmt>>& statements){
     Interpreter interpreter;
     for(const auto& statement : statements){
         // Debug: print type of statement
-        std::cerr << "Executing statement of type: " << typeid(*statement).name() << std::endl;
+        //std::cerr << "Executing statement of type: " << typeid(*statement).name() << std::endl;
         interpreter.execute(*statement);
     }
 }
