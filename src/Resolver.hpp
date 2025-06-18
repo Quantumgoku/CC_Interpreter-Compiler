@@ -16,6 +16,11 @@ public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
 
     lox_literal visit(const Block& stmt) const override {
+        if (functionBlockDepth > 0) {
+            // Already in a function scope, do not create a new one
+            resolve(stmt.statements);
+            return std::monostate{};
+        }
         beginScope();
         resolve(stmt.statements);
         endScope();
@@ -127,6 +132,7 @@ public:
 private:
     Interpreter& interpreter;
     mutable std::vector<std::unordered_map<std::string, bool>> scopes;
+    mutable int functionBlockDepth = 0; // Add a flag to track if we're resolving a function body
 
     void resolveFunction(const Function& function) const {
         beginScope();
@@ -134,7 +140,9 @@ private:
             declare(param);
             define(param);
         }
+        functionBlockDepth++;
         resolve(*function.body); // body is a shared_ptr<Stmt>
+        functionBlockDepth--;
         endScope();
     }
 
