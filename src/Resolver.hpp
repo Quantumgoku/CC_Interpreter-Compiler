@@ -142,7 +142,7 @@ private:
         if (scopes.empty()) return;
         auto& scope = scopes.back();
         if (scope.find(name.getLexeme()) != scope.end()) {
-            throw std::runtime_error("Variable '" + name.getLexeme() + "' already declared in this scope.");
+            throw RuntimeError(name, "Variable '" + name.getLexeme() + "' already declared in this scope.");
         }
         scope[name.getLexeme()] = false;
     }
