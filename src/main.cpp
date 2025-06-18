@@ -85,7 +85,17 @@ int main(int argc, char *argv[]) {
             Parser parser(tokens);
             std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
             if (!statements.empty()) {
-                interpret(statements);
+                try {
+                    interpret(statements);
+                } catch(const RuntimeError& e) {
+                    std::cerr << e.what() << "\n";
+                    std::cerr << e.token.getLine() << std::endl;
+                    // If the error is from the resolver, treat as compile error (exit 65)
+                    if (std::string(e.what()).find("Cannot read variable") != std::string::npos) {
+                        return 65;
+                    }
+                    return 70;
+                }
             } else {
                 std::cerr << "Executing failed." << std::endl;
                 return 65;
