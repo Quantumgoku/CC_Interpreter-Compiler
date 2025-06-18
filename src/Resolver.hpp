@@ -4,7 +4,7 @@
 #include "token.hpp"
 #include "Expr.hpp"
 #include "Stmt.hpp"
-#include "Parser.hpp"
+#include "parser.hpp"
 #include "literal.hpp"
 #include "Environment.hpp"
 #include "RuntimeError.hpp"
