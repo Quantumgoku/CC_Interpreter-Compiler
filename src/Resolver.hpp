@@ -166,12 +166,11 @@ private:
     void resolveLocal(const Expr& expr, const Token& name) const {
         for (int i = static_cast<int>(scopes.size()) - 1; i >= 0; --i) {
             if (scopes[i].count(name.getLexeme())) {
-                // Pass a pointer to expr instead of a shared_ptr
                 interpreter.resolve(std::shared_ptr<Expr>(const_cast<Expr*>(&expr), [](Expr*){}), scopes.size() - 1 - i);
                 return;
             }
         }
-        // If not found, assume global
+        // If not found, assume global (do not throw)
     }
 
     void resolve(const Stmt& stmt) const {
