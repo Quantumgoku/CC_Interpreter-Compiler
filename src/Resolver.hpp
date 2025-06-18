@@ -16,6 +16,11 @@ public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
 
     lox_literal visit(const Block& stmt) const override {
+        if (skipBlockScope > 0) {
+            skipBlockScope--;
+            resolve(stmt.statements);
+            return std::monostate{};
+        }
         beginScope();
         resolve(stmt.statements);
         endScope();
@@ -128,16 +133,29 @@ private:
     Interpreter& interpreter;
     mutable std::vector<std::unordered_map<std::string, bool>> scopes;
     mutable int functionBlockDepth = 0; // Add a flag to track if we're resolving a function body
-    mutable int skipBlockScope = 0;
+    mutable int skipBlockScope = 0; // Add a flag to track if we're resolving the outermost function body block
+
+    lox_literal visit(const Block& stmt) const override {
+        if (skipBlockScope > 0) {
+            skipBlockScope--;
+            resolve(stmt.statements);
+            return std::monostate{};
+        }
+        beginScope();
+        resolve(stmt.statements);
+        endScope();
+        return std::monostate{};
+    }
 
     void resolveFunction(const Function& function) const {
-        // Do NOT call beginScope()/endScope() here!
-        // The function body block will handle the scope.
+        beginScope();
         for (const auto& param : function.params) {
             declare(param);
             define(param);
         }
+        skipBlockScope++;
         resolve(*function.body); // body is a shared_ptr<Stmt>
+        endScope();
     }
 
     void declare(const Token& name) const {
