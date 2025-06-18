@@ -138,19 +138,6 @@ private:
     mutable int functionBlockDepth = 0; // Add a flag to track if we're resolving a function body
     mutable int skipBlockScope = 0; // Add a flag to track if we're resolving the outermost function body block
 
-    lox_literal visit(const Block& stmt) const override {
-        beginScope();
-        // If there are pending parameters, declare/define them in this scope
-        for (const auto& param : pendingParams) {
-            declare(param);
-            define(param);
-        }
-        pendingParams.clear();
-        resolve(stmt.statements);
-        endScope();
-        return std::monostate{};
-    }
-
     void resolveFunction(const Function& function) const {
         pendingParams = function.params;
         resolve(*function.body); // body is a shared_ptr<Stmt>
