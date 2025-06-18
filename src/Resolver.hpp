@@ -16,12 +16,13 @@ public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
 
     lox_literal visit(const Block& stmt) const override {
-        if (skipBlockScope > 0) {
-            skipBlockScope--;
-            resolve(stmt.statements);
-            return std::monostate{};
-        }
         beginScope();
+        // If there are pending parameters, declare/define them in this scope
+        for (const auto& param : pendingParams) {
+            declare(param);
+            define(param);
+        }
+        pendingParams.clear();
         resolve(stmt.statements);
         endScope();
         return std::monostate{};
@@ -132,18 +133,27 @@ public:
 private:
     Interpreter& interpreter;
     mutable std::vector<std::unordered_map<std::string, bool>> scopes;
+    // For robust parameter scoping
+    mutable std::vector<Token> pendingParams;
     mutable int functionBlockDepth = 0; // Add a flag to track if we're resolving a function body
     mutable int skipBlockScope = 0; // Add a flag to track if we're resolving the outermost function body block
 
-    void resolveFunction(const Function& function) const {
+    lox_literal visit(const Block& stmt) const override {
         beginScope();
-        for (const auto& param : function.params) {
+        // If there are pending parameters, declare/define them in this scope
+        for (const auto& param : pendingParams) {
             declare(param);
             define(param);
         }
-        skipBlockScope++;
-        resolve(*function.body); // body is a shared_ptr<Stmt>
+        pendingParams.clear();
+        resolve(stmt.statements);
         endScope();
+        return std::monostate{};
+    }
+
+    void resolveFunction(const Function& function) const {
+        pendingParams = function.params;
+        resolve(*function.body); // body is a shared_ptr<Stmt>
     }
 
     void declare(const Token& name) const {
