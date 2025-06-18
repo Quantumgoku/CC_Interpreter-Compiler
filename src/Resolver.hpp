@@ -165,7 +165,8 @@ private:
 
     void resolveLocal(const Expr& expr, const Token& name) const {
         for (int i = static_cast<int>(scopes.size()) - 1; i >= 0; --i) {
-            if (scopes[i].count(name.getLexeme())) {
+            auto it = scopes[i].find(name.getLexeme());
+            if (it != scopes[i].end() && it->second) { // Only resolve if defined
                 interpreter.resolve(std::shared_ptr<Expr>(const_cast<Expr*>(&expr), [](Expr*){}), scopes.size() - 1 - i);
                 return;
             }
