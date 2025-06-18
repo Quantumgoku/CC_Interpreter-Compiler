@@ -135,18 +135,6 @@ private:
     mutable int functionBlockDepth = 0; // Add a flag to track if we're resolving a function body
     mutable int skipBlockScope = 0; // Add a flag to track if we're resolving the outermost function body block
 
-    lox_literal visit(const Block& stmt) const override {
-        if (skipBlockScope > 0) {
-            skipBlockScope--;
-            resolve(stmt.statements);
-            return std::monostate{};
-        }
-        beginScope();
-        resolve(stmt.statements);
-        endScope();
-        return std::monostate{};
-    }
-
     void resolveFunction(const Function& function) const {
         beginScope();
         for (const auto& param : function.params) {
