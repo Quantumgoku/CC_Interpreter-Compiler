@@ -90,11 +90,8 @@ int main(int argc, char *argv[]) {
                 } catch(const RuntimeError& e) {
                     std::cerr << e.what() << "\n";
                     std::cerr << e.token.getLine() << std::endl;
-                    // If the error is from the resolver, treat as compile error (exit 65)
-                    if (std::string(e.what()).find("Cannot read variable") != std::string::npos) {
-                        return 65;
-                    }
-                    return 70;
+                    // Any RuntimeError during resolution/interpretation is a compile error (exit 65)
+                    return 65;
                 }
             } else {
                 std::cerr << "Executing failed." << std::endl;
