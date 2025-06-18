@@ -8,7 +8,7 @@
 #include "literal.hpp"
 #include "RuntimeError.hpp"
 
-class Environment{
+class Environment : public std::enable_shared_from_this<Environment> {
 private:
     std::shared_ptr<Environment> enclosing;
     std::map<std::string, lox_literal> values;
@@ -19,6 +19,10 @@ public:
 
     void define(const std::string& name, const lox_literal& value = lox_literal()){
         values[name] = value;
+    }
+
+    lox_literal getAt(int distance, const std::string& name) const {
+        return ancestor(distance)->values.at(name);
     }
 
     lox_literal getValue(const Token& name) const {
@@ -45,5 +49,13 @@ public:
             return;
         }
         throw RuntimeError(name, "Undefined variable '" + key + "'.");
+    }
+
+    std::shared_ptr<Environment> ancestor(int distance) const {
+        std::shared_ptr<Environment> environment = std::const_pointer_cast<Environment>(shared_from_this());
+        for (int i = 0; i < distance; ++i) {
+            environment = environment->enclosing;
+        }
+        return environment;
     }
 };

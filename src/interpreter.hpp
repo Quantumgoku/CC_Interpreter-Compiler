@@ -11,6 +11,7 @@
 #include "ReturnException.hpp"
 #include "literal.hpp"
 #include "Stmt.hpp"
+#include<unordered_map>
 
 class Interpreter : public ExprVisitorEval, public StmtVisitorEval {
 public:
@@ -33,6 +34,10 @@ public:
         stmt.accept(*this);
     }
 
+    void resolve(const std::shared_ptr<Expr>& expr, size_t depth) const {
+        locals.emplace(expr.get(), depth);
+    }
+
     lox_literal evaluate(const Expr& expr) const {
         return expr.accept(*this);
     }
@@ -49,7 +54,7 @@ public:
     }
 
     lox_literal visit(const Variable& expr) const override {
-        return environment->getValue(expr.name);
+        return lookUpVariable(expr.name, expr);
     }
 
     lox_literal visit(const Logical& expr) const override {
@@ -229,8 +234,20 @@ public:
 private:
     std::shared_ptr<Environment> globals = std::make_shared<Environment>();
     mutable std::shared_ptr<Environment> environment = globals;
+    mutable std::unordered_map<const Expr*, size_t> locals;
 
     mutable std::ostringstream oss;
+
+    lox_literal lookUpVariable(const Token& name, const Expr& expr) const {
+        auto it = locals.find(&expr);
+        if (it != locals.end()) {
+            int distance = it->second;
+            return environment->getAt(distance, name.getLexeme());
+        } else {
+            return globals->getValue(name);
+        }
+    }
+
     std::string literal_to_string(const lox_literal& value) const {
         if (std::holds_alternative<std::monostate>(value)) return "nil";
         if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);

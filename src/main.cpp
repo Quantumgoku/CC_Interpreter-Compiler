@@ -8,15 +8,16 @@
 #include "interpreter.hpp"
 #include "RuntimeError.hpp"
 #include "literal.hpp"
+#include "Resolver.hpp"
 
 std::string read_file_contents(const std::string& filename);
 std::string literal_to_string(const lox_literal& value);
 
 void interpret(const std::vector<std::shared_ptr<Stmt>>& statements){
     Interpreter interpreter;
+    Resolver resolver(interpreter);
+    resolver.resolve(statements);
     for(const auto& statement : statements){
-        // Debug: print type of statement
-        //std::cerr << "Executing statement of type: " << typeid(*statement).name() << std::endl;
         interpreter.execute(*statement);
     }
 }
