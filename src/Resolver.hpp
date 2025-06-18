@@ -158,7 +158,7 @@ private:
 
     void endScope() const {
         if (scopes.empty()) {
-            throw RuntimeError(Token("", 0, 0), "No scope to end.");
+            throw RuntimeError(Token(TokenType::IDENTIFIER, "", std::monostate{}, 0), "No scope to end.");
         }
         scopes.pop_back();
     }
