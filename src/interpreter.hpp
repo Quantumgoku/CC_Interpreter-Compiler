@@ -176,7 +176,7 @@ public:
     }
 
     lox_literal visit(const Function& stmt) const override {
-        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), std::make_shared<Environment>(environment));
+        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment);
         environment->define(stmt.name.getLexeme(), function);
         return std::monostate{};
     }
