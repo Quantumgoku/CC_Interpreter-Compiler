@@ -150,7 +150,13 @@ public:
 
     lox_literal visit(const Assign& expr) const override {
         lox_literal value = evaluate(*expr.value);
-        environment->assign(expr.name, value);
+        auto it = locals.find(&expr);
+        if (it != locals.end()) {
+            int distance = it->second;
+            environment->assignAt(distance, expr.name, value);
+        } else {
+            globals->assign(expr.name, value);
+        }
         return value;
     }
 

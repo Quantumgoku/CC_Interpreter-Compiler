@@ -56,6 +56,16 @@ public:
         throw RuntimeError(name, "Undefined variable '" + key + "'.");
     }
 
+    void assignAt(int distance, const Token& name, const lox_literal& value) {
+        auto env = ancestor(distance);
+        auto it = env->values.find(name.getLexeme());
+        if (it != env->values.end()) {
+            it->second = value;
+        } else {
+            throw RuntimeError(name, "Undefined variable '" + name.getLexeme() + "' at resolved depth.");
+        }
+    }
+
     std::shared_ptr<Environment> ancestor(int distance) const {
         std::shared_ptr<Environment> environment = std::const_pointer_cast<Environment>(shared_from_this());
         for (int i = 0; i < distance; ++i) {
