@@ -16,11 +16,6 @@ public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
 
     lox_literal visit(const Block& stmt) const override {
-        if (skipBlockScope > 0) {
-            skipBlockScope--;
-            resolve(stmt.statements);
-            return std::monostate{};
-        }
         beginScope();
         resolve(stmt.statements);
         endScope();
@@ -136,14 +131,13 @@ private:
     mutable int skipBlockScope = 0;
 
     void resolveFunction(const Function& function) const {
-        beginScope();
+        // Do NOT call beginScope()/endScope() here!
+        // The function body block will handle the scope.
         for (const auto& param : function.params) {
             declare(param);
             define(param);
         }
-        skipBlockScope++;
         resolve(*function.body); // body is a shared_ptr<Stmt>
-        endScope();
     }
 
     void declare(const Token& name) const {
