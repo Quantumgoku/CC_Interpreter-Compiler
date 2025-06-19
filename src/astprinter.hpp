@@ -2,6 +2,7 @@
 #include <sstream>
 #include "Expr.hpp"
 #include <iostream>
+#include <variant>
 
 class ASTPrinter : public ExprVisitorPrint {
 public:
@@ -26,17 +27,25 @@ public:
 
     void visit(const Literal& expr) const override {
         if (!std::holds_alternative<std::monostate>(expr.value)) {
-            oss << std::visit([this](auto&& arg) -> std::string {
+            auto* valuePtr = const_cast<lox_literal*>(&expr.value);
+            ::std::visit([this](const auto& arg) {
                 using T = std::decay_t<decltype(arg)>;
-                if constexpr (std::is_same_v<T, std::string>)
-                    return arg;
-                else if constexpr (std::is_same_v<T, double>)
-                    return this->normalizeNumberLiteral(std::to_string(arg));
-                else if constexpr (std::is_same_v<T, bool>)
-                    return arg ? "true" : "false";
-                else
-                    return "";
-            }, expr.value);
+                if constexpr (std::is_same_v<T, std::string>) {
+                    oss << arg;
+                } else if constexpr (std::is_same_v<T, double>) {
+                    oss << this->normalizeNumberLiteral(std::to_string(arg));
+                } else if constexpr (std::is_same_v<T, bool>) {
+                    oss << (arg ? "true" : "false");
+                } else if constexpr (std::is_same_v<T, std::shared_ptr<LoxCallable>>) {
+                    oss << "<fn>";
+                } else if constexpr (std::is_same_v<T, std::shared_ptr<LoxInstance>>) {
+                    oss << "<instance>";
+                } else if constexpr (std::is_same_v<T, std::monostate>) {
+                    oss << "nil";
+                } else {
+                    oss << "<unknown>";
+                }
+            }, *valuePtr);
         } else {
             oss << "nil";
         }
@@ -66,6 +75,20 @@ public:
             oss << " ";
             arg->accept(*this);
         }
+        oss << ")";
+    }
+
+    void visit(const Get& expr) const override {
+        oss << "(get ";
+        expr.object->accept(*this);
+        oss << "." << expr.name.getLexeme() << ")";
+    }
+
+    void visit(const Set& expr) const override {
+        oss << "(set ";
+        expr.object->accept(*this);
+        oss << "." << expr.name.getLexeme() << " ";
+        expr.value->accept(*this);
         oss << ")";
     }
 

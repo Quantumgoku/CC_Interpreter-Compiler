@@ -184,6 +184,26 @@ public:
         return (*functionPtr)->call(*this, arguments);
     }
 
+    lox_literal visit(const Get& expr) const override {
+        lox_literal object = evaluate(*expr.object);
+        if(!std::holds_alternative<std::shared_ptr<LoxInstance>>(object)){
+            throw RuntimeError(expr.name, "Only instances have properties.");
+        }
+        auto instance = std::get<std::shared_ptr<LoxInstance>>(object);
+        return instance->get(expr.name);
+    }
+
+    lox_literal visit(const Set& expr) const override {
+        lox_literal object = evaluate(*expr.object);
+        if(!std::holds_alternative<std::shared_ptr<LoxInstance>>(object)){
+            throw RuntimeError(expr.name, "Only instances have fields.");
+        }
+        lox_literal value = evaluate(*expr.value);
+        auto instance = std::get<std::shared_ptr<LoxInstance>>(object);
+        instance->set(expr.name, value);
+        return value;
+    }
+
     lox_literal visit(const Function& stmt) const override {
         auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment);
         environment->define(stmt.name.getLexeme(), function);

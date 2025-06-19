@@ -82,6 +82,17 @@ public:
         return std::monostate{};
     }
 
+    lox_literal visit(const Get& expr) const override {
+        resolve(*expr.object);
+        return std::monostate{};
+    }
+
+    lox_literal visit(const Set& expr) const override {
+        resolve(*expr.value);
+        resolve(*expr.object);
+        return std::monostate{};
+    }
+
     lox_literal visit(const Var& stmt) const override {
         declare(stmt.name);
         if (stmt.initializer != nullptr) {

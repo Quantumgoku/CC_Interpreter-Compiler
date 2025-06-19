@@ -5,9 +5,9 @@
 #include "literal.hpp"
 #include<unordered_map>
 #include "LoxCallable.hpp"
-#include "LoxInstance.hpp" // Ensure this header defines the LoxInstance class
+#include "LoxInstance.hpp" 
 
-class LoxInstance; // Forward declaration
+class LoxInstance; 
 
 class LoxClass : public LoxCallable, public std::enable_shared_from_this<LoxClass> {
 public:

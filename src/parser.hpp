@@ -306,6 +306,8 @@ private:
             if(auto varExpr = dynamic_cast<Variable*>(expr->get())){
                 Token name = varExpr->name;
                 return std::make_shared<Assign>(name, value.value());
+            }else if(auto getExpr = dynamic_cast<Get*>(expr->get())){
+                return std::make_shared<Set>(getExpr->object, getExpr->name, value.value());
             }
 
             throw error(equals, "Invalid assignment target.");
@@ -404,6 +406,9 @@ private:
         while(true){
             if(match({TokenType::LEFT_PAREN})){
                 expr = finishCall(expr.value());
+            }else if(match({TokenType::DOT})){
+                Token name = try_consume(TokenType::IDENTIFIER, "Expect property name after '.'.");
+                expr = std::make_shared<Get>(expr.value(), name);
             }else{
                 break;
             }

@@ -24,6 +24,8 @@ struct Literal;
 struct Logical;
 struct Unary;
 struct Call;
+struct Get;
+struct Set;
 struct Variable;
 
 class ExprVisitorPrint {
@@ -35,6 +37,8 @@ public:
     virtual void visit(const Logical& expr) const = 0;
     virtual void visit(const Unary& expr) const = 0;
     virtual void visit(const Call& expr) const = 0;
+    virtual void visit(const Get& expr) const = 0;
+    virtual void visit(const Set& expr) const = 0;
     virtual void visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorPrint() = default;
 };
@@ -48,6 +52,8 @@ public:
     virtual lox_literal visit(const Logical& expr) const = 0;
     virtual lox_literal visit(const Unary& expr) const = 0;
     virtual lox_literal visit(const Call& expr) const = 0;
+    virtual lox_literal visit(const Get& expr) const = 0;
+    virtual lox_literal visit(const Set& expr) const = 0;
     virtual lox_literal visit(const Variable& expr) const = 0;
     virtual ~ExprVisitorEval() = default;
 };
@@ -82,7 +88,7 @@ public:
 class Literal : public Expr {
 public:
     ~Literal() override = default;
-    Literal(const lox_literal& value) : value(value) {}
+    Literal(lox_literal value) : value(value) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
     lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     lox_literal value;
@@ -115,6 +121,25 @@ public:
     std::shared_ptr<Expr> callee;
     Token paren;
     std::vector<std::shared_ptr<Expr>> arguments;
+};
+
+class Get : public Expr {
+public:
+    Get(std::shared_ptr<Expr> object, Token name) : object(object), name(name) {}
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    std::shared_ptr<Expr> object;
+    Token name;
+};
+
+class Set : public Expr {
+public:
+    Set(std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value) : object(object), name(name), value(value) {}
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    std::shared_ptr<Expr> object;
+    Token name;
+    std::shared_ptr<Expr> value;
 };
 
 class Variable : public Expr {
