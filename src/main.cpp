@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
                     std::cerr << e.what() << "\n";
                     std::cerr << e.token.getLine() << std::endl;
                     // Any RuntimeError during resolution/interpretation is a compile error (exit 65)
-                    return 65;
+                    return 70;
                 }
             } else {
                 std::cerr << "Executing failed." << std::endl;
