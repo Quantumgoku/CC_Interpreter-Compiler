@@ -13,6 +13,7 @@
 #include "Stmt.hpp"
 #include<unordered_map>
 #include "lox_utils.hpp"
+#include "main.cpp" // for literal_to_string
 
 class Interpreter : public ExprVisitorEval, public StmtVisitorEval {
 public:
