@@ -248,49 +248,9 @@ private:
         auto it = locals.find(&expr);
         if (it != locals.end()) {
             int distance = it->second;
-            if(distance != NULL) return environment->getAt(distance, name.getLexeme());
+            return environment->getAt(distance, name.getLexeme());
         } else {
             return globals->getValue(name);
         }
-    }
-
-    std::string literal_to_string(const lox_literal& value) const {
-        if (std::holds_alternative<std::monostate>(value)) return "nil";
-        if (std::holds_alternative<std::string>(value)) return std::get<std::string>(value);
-        if (std::holds_alternative<double>(value)) {
-            double d = std::get<double>(value);
-            if (d == static_cast<int64_t>(d)) {
-                return std::to_string(static_cast<int64_t>(d));
-            } else {
-                std::ostringstream oss;
-                oss << std::fixed << std::setprecision(6) << d;
-                std::string s = oss.str();
-                s.erase(s.find_last_not_of('0') + 1, std::string::npos);
-                if (!s.empty() && s.back() == '.') s.pop_back();
-                return s;
-            }
-        }
-        if (std::holds_alternative<bool>(value)) return std::get<bool>(value) ? "true" : "false";
-        if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
-            auto fn = std::get<std::shared_ptr<LoxCallable>>(value);
-            return fn ? fn->toString() : "<fn>";
-        }
-        return "";
-    }
-
-    void checkNumberOperand(const Token& op, std::initializer_list<lox_literal> operands) const {
-        for(auto operand : operands){
-            if(!std::holds_alternative<double>(operand)){
-                throw RuntimeError(op, "Operands must be a number.");
-            }
-        }
-    }
-
-    bool isTruthy(lox_literal object) const {
-        if(std::holds_alternative<std::monostate>(object)){
-            return false;
-        }
-        if(std::holds_alternative<bool>(object)) return std::get<bool>(object);
-        return true;
-    }
-};
+        // Defensive: if somehow neither branch returns, throw a clear error
+        throw RuntimeError(name, "Variable resolution failed for '" + name.getLexeme() + "'.");
