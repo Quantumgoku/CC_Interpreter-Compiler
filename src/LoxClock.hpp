@@ -14,7 +14,7 @@ public:
         return 0; // Clock function takes no arguments
     }
 
-    lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) const override {
+    lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) override {
         // Get the current time in seconds since epoch
         auto now = std::chrono::system_clock::now();
         auto duration = now.time_since_epoch();

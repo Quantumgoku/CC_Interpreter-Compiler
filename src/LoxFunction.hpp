@@ -15,7 +15,7 @@ public:
     LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment> closure)
         : declaration(std::move(declaration)), closure(std::move(closure)) {}
 
-    lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) const override;
+    lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) override;
 
     std::string toString() const override {
         return "<fn " + declaration->name.getLexeme() + ">";

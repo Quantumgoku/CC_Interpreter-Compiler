@@ -1,7 +1,7 @@
 #include "LoxFunction.hpp"
 #include "interpreter.hpp"
 
-lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) const {
+lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) {
     auto environment = std::make_shared<Environment>(closure);
     for (size_t i = 0; i < declaration->params.size(); ++i) {
         environment->define(declaration->params[i].getLexeme(), arguments[i]);
