@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include "LoxCallable.hpp"
+#include "LoxInstance.hpp"
 #include <cstdint>
 
 std::string literal_to_string(const lox_literal& value) {
@@ -25,6 +26,10 @@ std::string literal_to_string(const lox_literal& value) {
     if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
         auto fn = std::get<std::shared_ptr<LoxCallable>>(value);
         return fn ? fn->toString() : "<fn>";
+    }
+    if (std::holds_alternative<std::shared_ptr<LoxInstance>>(value)) {
+        auto inst = std::get<std::shared_ptr<LoxInstance>>(value);
+        return inst ? inst->toString() : "<instance>";
     }
     return "";
 }
