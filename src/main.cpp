@@ -85,12 +85,22 @@ int main(int argc, char *argv[]) {
             std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
             if (!statements.empty()) {
                 try {
-                    interpret(statements);
+                    Interpreter interpreter;
+                    Resolver resolver(interpreter);
+                    resolver.resolve(statements);
                 } catch(const RuntimeError& e) {
                     std::cerr << e.what() << "\n";
                     std::cerr << e.token.getLine() << std::endl;
-                    // Any RuntimeError during resolution/interpretation is a compile error (exit 65)
-                    return 70;
+                    return 65; // Compile error
+                }
+                try {
+                    for(const auto& statement : statements){
+                        interpreter.execute(*statement);
+                    }
+                } catch(const RuntimeError& e) {
+                    std::cerr << e.what() << "\n";
+                    std::cerr << e.token.getLine() << std::endl;
+                    return 70; // Runtime error
                 }
             } else {
                 std::cerr << "Executing failed." << std::endl;
