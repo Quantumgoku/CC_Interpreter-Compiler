@@ -11,6 +11,11 @@
 #include <vector>
 #include <unordered_map>
 
+enum class FunctionType {
+    NONE,
+    FUNCTION
+};
+
 class Resolver : public ExprVisitorEval, public StmtVisitorEval {
 public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
@@ -89,7 +94,7 @@ public:
     lox_literal visit(const Function& stmt) const override {
         declare(stmt.name);
         define(stmt.name);
-        resolveFunction(stmt);
+        resolveFunction(stmt, FunctionType::FUNCTION);
         return std::monostate{};
     }
 
@@ -113,6 +118,9 @@ public:
     }
 
     lox_literal visit(const Return& stmt) const override {
+        if (currentFunction == FunctionType::NONE) {
+            throw RuntimeError(stmt.keyword, "Can't return from top-level code.");
+        }
         if (stmt.value != nullptr) {
             resolve(*stmt.value);
         }
@@ -136,10 +144,14 @@ private:
     mutable std::vector<std::unordered_map<std::string, bool>> scopes;
     // Use a stack for pendingParams to handle nested functions correctly
     mutable std::vector<std::vector<Token>> pendingParamsStack;
+    mutable FunctionType currentFunction = FunctionType::NONE;
 
-    void resolveFunction(const Function& function) const {
+    void resolveFunction(const Function& function, FunctionType type = FunctionType::FUNCTION) const {
+        FunctionType enclosingFunction = currentFunction;
+        currentFunction = type;
         pendingParamsStack.push_back(function.params);
         resolve(*function.body); // body is a shared_ptr<Stmt>
+        currentFunction = enclosingFunction;
     }
 
     void declare(const Token& name) const {
