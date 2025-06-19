@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include "LoxCallable.hpp"
+#include <cstdint>
 
 std::string literal_to_string(const lox_literal& value) {
     if (std::holds_alternative<std::monostate>(value)) return "nil";

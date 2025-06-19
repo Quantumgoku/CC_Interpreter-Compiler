@@ -171,7 +171,8 @@ private:
         for (int i = static_cast<int>(scopes.size()) - 1; i >= 0; --i) {
             auto it = scopes[i].find(name.getLexeme());
             if (it != scopes[i].end()) { // Always resolve to nearest declaration
-                interpreter.resolve(std::shared_ptr<Expr>(const_cast<Expr*>(&expr), [](Expr*){}), scopes.size() - 1 - i);
+                //std::cerr << "[Resolver] resolveLocal: " << name.getLexeme() << " expr ptr=" << &expr << " depth=" << (scopes.size() - 1 - i) << std::endl;
+                interpreter.resolve(&expr, scopes.size() - 1 - i);
                 return;
             }
         }

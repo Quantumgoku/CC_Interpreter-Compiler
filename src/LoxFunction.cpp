@@ -7,8 +7,13 @@ lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<
         environment->define(declaration->params[i].getLexeme(), arguments[i]);
     }
     try {
-        std::vector<std::shared_ptr<Stmt>> bodyVec = {declaration->body};
-        interpreter.executeBlock(bodyVec, environment);
+        // If the function body is a Block, execute its statements directly in the new environment
+        if (auto block = std::dynamic_pointer_cast<Block>(declaration->body)) {
+            interpreter.executeBlock(block->statements, environment);
+        } else {
+            std::vector<std::shared_ptr<Stmt>> bodyVec = {declaration->body};
+            interpreter.executeBlock(bodyVec, environment);
+        }
     } catch (const ReturnException& returnValue) {
         return returnValue.getValue();
     }

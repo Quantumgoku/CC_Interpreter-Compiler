@@ -36,8 +36,8 @@ public:
         stmt.accept(*this);
     }
 
-    void resolve(const std::shared_ptr<Expr>& expr, size_t depth) const {
-        locals.emplace(expr.get(), depth);
+    void resolve(const Expr* expr, size_t depth) const {
+        locals.emplace(expr, depth);
     }
 
     lox_literal evaluate(const Expr& expr) const {
@@ -247,7 +247,16 @@ private:
     mutable std::ostringstream oss;
 
     lox_literal lookUpVariable(const Token& name, const Expr& expr) const {
+        //std::cerr << "[Interpreter] lookUpVariable: " << name.getLexeme() << " expr ptr=" << &expr;
         auto it = locals.find(&expr);
+        // if (it != locals.end()) {
+        //     std::cerr << " found at depth " << it->second << std::endl;
+        //     int distance = it->second;
+        //     return environment->getAt(distance, name.getLexeme());
+        // } else {
+        //     std::cerr << " not found in locals, using globals" << std::endl;
+        //     return globals->getValue(name);
+        // }
         if (it != locals.end()) {
             int distance = it->second;
             return environment->getAt(distance, name.getLexeme());
