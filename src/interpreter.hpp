@@ -12,6 +12,7 @@
 #include "literal.hpp"
 #include "Stmt.hpp"
 #include<unordered_map>
+#include "lox_utils.hpp"
 
 class Interpreter : public ExprVisitorEval, public StmtVisitorEval {
 public:
@@ -254,3 +255,5 @@ private:
         }
         // Defensive: if somehow neither branch returns, throw a clear error
         throw RuntimeError(name, "Variable resolution failed for '" + name.getLexeme() + "'.");
+    }
+};
