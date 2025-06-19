@@ -19,6 +19,7 @@ public:
 
 // Forward declarations
 struct Block;
+struct Class;
 struct Expression;
 struct Function;
 struct If;
@@ -30,6 +31,7 @@ struct While;
 class StmtVisitorPrint {
 public:
     virtual void visit(const Block& stmt) const = 0;
+    virtual void visit(const Class& stmt) const = 0;
     virtual void visit(const Expression& stmt) const = 0;
     virtual void visit(const Function& stmt) const = 0;
     virtual void visit(const If& stmt) const = 0;
@@ -43,6 +45,7 @@ public:
 class StmtVisitorEval {
 public:
     virtual lox_literal visit(const Block& stmt) const = 0;
+    virtual lox_literal visit(const Class& stmt) const = 0;
     virtual lox_literal visit(const Expression& stmt) const = 0;
     virtual lox_literal visit(const Function& stmt) const = 0;
     virtual lox_literal visit(const If& stmt) const = 0;
@@ -59,6 +62,15 @@ public:
     void accept(const StmtVisitorPrint& visitor) const override { visitor.visit(*this); }
     lox_literal accept(const StmtVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::vector<std::shared_ptr<Stmt>> statements;
+};
+
+class Class : public Stmt {
+public:
+    Class(Token name, std::vector<std::shared_ptr<Function>> methods) : name(name), methods(methods) {}
+    void accept(const StmtVisitorPrint& visitor) const override { visitor.visit(*this); }
+    lox_literal accept(const StmtVisitorEval& visitor) const override { return visitor.visit(*this); }
+    Token name;
+    std::vector<std::shared_ptr<Function>> methods;
 };
 
 class Expression : public Stmt {

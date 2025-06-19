@@ -4,7 +4,6 @@
 #include "token.hpp"
 #include "literal.hpp"
 
-//forward declarations
 class Expr;
 class ExprVisitorPrint;
 

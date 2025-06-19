@@ -55,6 +55,7 @@ private:
 
     std::shared_ptr<Stmt> declaration(){
         try{
+            if(match({TokenType::CLASS})) return classDeclaration();
             if(match({TokenType::FUN})) return function("function");
             if(match({TokenType::VAR})) return varDeclaration();
             auto stmt = statement();
@@ -66,6 +67,23 @@ private:
             synchronize();
             throw;
         }
+    }
+
+    std::shared_ptr<Stmt> classDeclaration(){
+        Token name = try_consume(TokenType::IDENTIFIER, "Expect class name.");
+        // std::shared_ptr<Expr> superclass = nullptr;
+        // if(match({TokenType::LESS})){
+        //     Token superName = try_consume(TokenType::IDENTIFIER, "Expect superclass name.");
+        //     superclass = std::make_shared<Variable>(superName);
+        // }
+        try_consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
+
+        std::vector<std::shared_ptr<Function>> methods;
+        while(!check(TokenType::RIGHT_BRACE) && !isAtEnd()){
+            methods.push_back(function("method"));
+        }
+        try_consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
+        return std::make_shared<Class>(name, methods);
     }
 
     std::shared_ptr<Function> function(const std::string& kind){

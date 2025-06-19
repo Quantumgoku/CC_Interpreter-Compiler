@@ -14,6 +14,7 @@
 #include<unordered_map>
 #include "lox_utils.hpp"
 #include "literal_to_string.hpp"
+#include "LoxClass.hpp"
 
 class Interpreter : public ExprVisitorEval, public StmtVisitorEval {
 public:
@@ -201,6 +202,13 @@ public:
 
     lox_literal visit(const Block& stmt) const override {
         executeBlock(stmt.statements, std::make_shared<Environment>(environment));
+        return std::monostate{};
+    }
+
+    lox_literal visit(const Class& stmt) const override {
+        environment->define(stmt.name.getLexeme(), std::monostate{});
+        std::shared_ptr<LoxCallable> klass = std::make_shared<LoxClass>(stmt.name.getLexeme());
+        environment->assign(stmt.name, klass);
         return std::monostate{};
     }
 

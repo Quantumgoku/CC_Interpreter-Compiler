@@ -133,6 +133,12 @@ public:
         return std::monostate{};
     }
 
+    lox_literal visit(const Class& stmt) const override {
+        declare(stmt.name);
+        define(stmt.name);
+        return std::monostate{};
+    }
+
     void resolve(const std::vector<std::shared_ptr<Stmt>>& statements) const {
         for (const auto& statement : statements) {
             resolve(*statement);
