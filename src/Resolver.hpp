@@ -17,12 +17,13 @@ public:
 
     lox_literal visit(const Block& stmt) const override {
         beginScope();
-        // If there are pending parameters, declare/define them in this scope
-        for (const auto& param : pendingParams) {
-            declare(param);
-            define(param);
+        if (!pendingParamsStack.empty()) {
+            for (const auto& param : pendingParamsStack.back()) {
+                declare(param);
+                define(param);
+            }
+            pendingParamsStack.pop_back();
         }
-        pendingParams.clear();
         resolve(stmt.statements);
         endScope();
         return std::monostate{};
@@ -133,13 +134,11 @@ public:
 private:
     Interpreter& interpreter;
     mutable std::vector<std::unordered_map<std::string, bool>> scopes;
-    // For robust parameter scoping
-    mutable std::vector<Token> pendingParams;
-    mutable int functionBlockDepth = 0; // Add a flag to track if we're resolving a function body
-    mutable int skipBlockScope = 0; // Add a flag to track if we're resolving the outermost function body block
+    // Use a stack for pendingParams to handle nested functions correctly
+    mutable std::vector<std::vector<Token>> pendingParamsStack;
 
     void resolveFunction(const Function& function) const {
-        pendingParams = function.params;
+        pendingParamsStack.push_back(function.params);
         resolve(*function.body); // body is a shared_ptr<Stmt>
     }
 
