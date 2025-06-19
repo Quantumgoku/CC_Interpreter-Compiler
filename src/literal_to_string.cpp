@@ -1,4 +1,7 @@
 #include "literal_to_string.hpp"
+#include <sstream>
+#include <iomanip>
+#include "LoxCallable.hpp"
 
 std::string literal_to_string(const lox_literal& value) {
     if (std::holds_alternative<std::monostate>(value)) return "nil";
