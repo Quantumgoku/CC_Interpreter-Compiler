@@ -84,8 +84,8 @@ int main(int argc, char *argv[]) {
             Parser parser(tokens);
             std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
             if (!statements.empty()) {
+                Interpreter interpreter;
                 try {
-                    Interpreter interpreter;
                     Resolver resolver(interpreter);
                     resolver.resolve(statements);
                 } catch(const RuntimeError& e) {
