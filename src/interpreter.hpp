@@ -248,7 +248,7 @@ private:
         auto it = locals.find(&expr);
         if (it != locals.end()) {
             int distance = it->second;
-            return environment->getAt(distance, name.getLexeme());
+            if(distance != NULL) return environment->getAt(distance, name.getLexeme());
         } else {
             return globals->getValue(name);
         }

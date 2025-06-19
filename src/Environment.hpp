@@ -22,12 +22,7 @@ public:
     }
 
     lox_literal getAt(int distance, const std::string& name) const {
-        auto env = ancestor(distance);
-        auto it = env->values.find(name);
-        if (it != env->values.end()) {
-            return it->second;
-        }
-        throw std::runtime_error("Undefined variable '" + name + "' at resolved depth.");
+        return ancestor(distance)->values.at(name);
     }
 
     lox_literal getValue(const Token& name) const {
