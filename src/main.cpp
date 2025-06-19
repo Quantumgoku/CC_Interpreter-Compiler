@@ -9,7 +9,6 @@
 #include "RuntimeError.hpp"
 #include "literal.hpp"
 #include "Resolver.hpp"
-#include "literal_to_string.hpp"
 
 std::string read_file_contents(const std::string& filename);
 
