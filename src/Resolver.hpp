@@ -13,7 +13,8 @@
 
 enum class FunctionType {
     NONE,
-    FUNCTION
+    FUNCTION,
+    METHOD
 };
 
 class Resolver : public ExprVisitorEval, public StmtVisitorEval {
@@ -147,6 +148,11 @@ public:
     lox_literal visit(const Class& stmt) const override {
         declare(stmt.name);
         define(stmt.name);
+        for( const auto& method : stmt.methods) {
+            //FunctionType type = (method->name.getLexeme() == "init") ? FunctionType::METHOD : FunctionType::FUNCTION;
+            FunctionType declaration = FunctionType::METHOD;
+            resolveFunction(*method, declaration);
+        }
         return std::monostate{};
     }
 

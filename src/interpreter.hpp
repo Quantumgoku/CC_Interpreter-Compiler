@@ -227,7 +227,12 @@ public:
 
     lox_literal visit(const Class& stmt) const override {
         environment->define(stmt.name.getLexeme(), std::monostate{});
-        std::shared_ptr<LoxCallable> klass = std::make_shared<LoxClass>(stmt.name.getLexeme());
+        std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
+        for(const auto& method : stmt.methods) {
+            std::shared_ptr<LoxFunction> function = std::make_shared<LoxFunction>(method, environment);
+            methods[method->name.getLexeme()] = function;
+        }
+        std::shared_ptr<LoxCallable> klass = std::make_shared<LoxClass>(stmt.name.getLexeme(), methods);
         environment->assign(stmt.name, klass);
         return std::monostate{};
     }
