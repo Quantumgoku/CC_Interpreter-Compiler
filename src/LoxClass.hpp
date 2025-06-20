@@ -13,7 +13,7 @@ class LoxClass : public LoxCallable, public std::enable_shared_from_this<LoxClas
 public:
     LoxClass(const std::string& name, const std::unordered_map<std::string, std::shared_ptr<LoxFunction>>& methods)
         : name(name), methods(methods) {}
-    std::string toString() const override { return name + " instance"; }
+    std::string toString() const override { return name; } // Only return class name
     size_t arity() const override { return 0; }
     lox_literal call(const Interpreter&, const std::vector<lox_literal>&) override;
     std::string getName() const { return name; }
