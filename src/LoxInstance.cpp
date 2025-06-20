@@ -4,7 +4,7 @@
 LoxInstance::LoxInstance(std::shared_ptr<LoxClass> klass) : klass(std::move(klass)) {}
 
 std::string LoxInstance::toString() const {
-    return klass->getName();
+    return klass->getName() + " instance";
 }
 
 lox_literal LoxInstance::call(const Interpreter&, const std::vector<lox_literal>&) {
