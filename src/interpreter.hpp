@@ -236,10 +236,14 @@ public:
         std::weak_ptr<LoxClass> superClassPtr;
         if (stmt.superclass) {
             supperClass = evaluate(**stmt.superclass);
-            if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(supperClass) ||
-                !(superClassPtr = std::dynamic_pointer_cast<LoxClass>(std::get<std::shared_ptr<LoxCallable>>(supperClass)))) {
+            if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(supperClass)) {
                 throw RuntimeError(stmt.name, "Superclass must be a class.");
             }
+            auto tempSuper = std::dynamic_pointer_cast<LoxClass>(std::get<std::shared_ptr<LoxCallable>>(supperClass));
+            if (!tempSuper) {
+                throw RuntimeError(stmt.name, "Superclass must be a class.");
+            }
+            superClassPtr = tempSuper;
         }
         environment->define(stmt.name.getLexeme(), std::monostate{});
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;

@@ -34,6 +34,6 @@ public:
     }
 private:
     std::string name;
-    std::weak_ptr<LoxClass> superclass; // Now weak_ptr to break cycles
+    std::weak_ptr<LoxClass> superclass; // Optional, can be empty if no superclass
     std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
 };
