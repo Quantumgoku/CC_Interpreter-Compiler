@@ -215,11 +215,9 @@ public:
     }
 
     lox_literal visit(const Return& stmt) const override {
-        lox_literal value;
+        lox_literal value = std::monostate{};
         if (stmt.value != nullptr) {
             value = evaluate(*stmt.value);
-        } else {
-            value = std::monostate{};
         }
         throw ReturnException(value);
     }
