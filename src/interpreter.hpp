@@ -233,7 +233,7 @@ public:
 
     lox_literal visit(const Class& stmt) const override {
         lox_literal supperClass = std::monostate{};
-        std::shared_ptr<LoxClass> superClassPtr = nullptr;
+        std::weak_ptr<LoxClass> superClassPtr;
         if (stmt.superclass) {
             supperClass = evaluate(**stmt.superclass);
             if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(supperClass) ||
