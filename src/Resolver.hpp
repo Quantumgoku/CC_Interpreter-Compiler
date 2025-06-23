@@ -14,7 +14,13 @@
 enum class FunctionType {
     NONE,
     FUNCTION,
+    INITIALIZER,
     METHOD
+};
+
+enum class ClassType {
+    NONE,
+    CLASS
 };
 
 class Resolver : public ExprVisitorEval, public StmtVisitorEval {
@@ -95,6 +101,9 @@ public:
     }
 
     lox_literal visit(const This& expr) const override {
+        if (currentClass == ClassType::NONE) {
+            throw RuntimeError(expr.keyword, "Can't use 'this' outside of a class.");
+        }
         resolveLocal(expr, expr.keyword);
         return std::monostate{};
     }
@@ -139,6 +148,9 @@ public:
             throw RuntimeError(stmt.keyword, "Can't return from top-level code.");
         }
         if (stmt.value != nullptr) {
+            if(currentFunction == FunctionType::INITIALIZER) {
+                throw RuntimeError(stmt.keyword, "Can't return a value from an initializer.");
+            }
             resolve(*stmt.value);
         }
         return std::monostate{};
@@ -151,6 +163,8 @@ public:
     }
 
     lox_literal visit(const Class& stmt) const override {
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType::CLASS;
         declare(stmt.name);
         define(stmt.name);
         beginScope();
@@ -158,9 +172,13 @@ public:
         for( const auto& method : stmt.methods) {
             //FunctionType type = (method->name.getLexeme() == "init") ? FunctionType::METHOD : FunctionType::FUNCTION;
             FunctionType declaration = FunctionType::METHOD;
+            if(method->name.getLexeme() == "init") {
+                declaration = FunctionType::INITIALIZER;
+            }
             resolveFunction(*method, declaration);
         }
         endScope();
+        currentClass = enclosingClass;
         return std::monostate{};
     }
 
@@ -176,6 +194,7 @@ private:
     // Use a stack for pendingParams to handle nested functions correctly
     mutable std::vector<std::vector<Token>> pendingParamsStack;
     mutable FunctionType currentFunction = FunctionType::NONE;
+    mutable ClassType currentClass = ClassType::NONE;
 
     void resolveFunction(const Function& function, FunctionType type = FunctionType::FUNCTION) const {
         FunctionType enclosingFunction = currentFunction;

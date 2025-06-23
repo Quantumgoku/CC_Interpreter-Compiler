@@ -11,9 +11,10 @@ class Interpreter; // Forward declaration
 class LoxFunction : public LoxCallable {
     std::shared_ptr<Function> declaration;
     std::shared_ptr<Environment> closure;
+    bool isInitializer = false;
 public:
-    LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment> closure)
-        : declaration(std::move(declaration)), closure(std::move(closure)) {}
+    LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment> closure, bool isInitializer)
+        : declaration(std::move(declaration)), closure(std::move(closure)), isInitializer(isInitializer) {}
 
     lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) override;
 
@@ -28,6 +29,6 @@ public:
     LoxFunction bind(const std::shared_ptr<LoxInstance>& instance) const {
         auto environment = std::make_shared<Environment>(closure);
         environment->define("this", instance);
-        return LoxFunction(declaration, environment);
+        return LoxFunction(declaration, environment, isInitializer);
     }
 };

@@ -209,7 +209,7 @@ public:
     }
 
     lox_literal visit(const Function& stmt) const override {
-        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment);
+        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment, false);
         environment->define(stmt.name.getLexeme(), function);
         return std::monostate{};
     }
@@ -233,7 +233,7 @@ public:
         environment->define(stmt.name.getLexeme(), std::monostate{});
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
-            std::shared_ptr<LoxFunction> function = std::make_shared<LoxFunction>(method, environment);
+            std::shared_ptr<LoxFunction> function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
             methods[method->name.getLexeme()] = function;
         }
         std::shared_ptr<LoxCallable> klass = std::make_shared<LoxClass>(stmt.name.getLexeme(), methods);

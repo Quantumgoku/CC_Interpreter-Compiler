@@ -15,7 +15,12 @@ lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<
             interpreter.executeBlock(bodyVec, environment);
         }
     } catch (const ReturnException& returnValue) {
+        if(isInitializer) return closure->getAt(0, "this");
         return returnValue.getValue();
+    }
+    if(isInitializer) {
+        // If this function is an initializer, return the instance
+        return closure->getAt(0, "this");
     }
     return lox_literal(std::monostate{});
 }

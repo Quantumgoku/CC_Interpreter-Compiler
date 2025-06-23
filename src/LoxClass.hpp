@@ -14,7 +14,11 @@ public:
     LoxClass(const std::string& name, const std::unordered_map<std::string, std::shared_ptr<LoxFunction>>& methods)
         : name(name), methods(methods) {}
     std::string toString() const override { return name; } // Only return class name
-    size_t arity() const override { return 0; }
+    size_t arity() const override {
+        auto initializer = findMethod("init");
+        if (initializer == nullptr) return 0;
+        return initializer->arity();
+    }
     lox_literal call(const Interpreter&, const std::vector<lox_literal>&) override;
     std::string getName() const { return name; }
     // Optionally, add a getter for methods if needed
