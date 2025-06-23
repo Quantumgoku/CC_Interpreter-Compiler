@@ -18,6 +18,11 @@ public:
     lox_literal call(const Interpreter&, const std::vector<lox_literal>&) override;
     lox_literal get(const Token& name);
     void set(const Token& name, const lox_literal& value);
+    ~LoxInstance() override {
+        // Defensive logging for shutdown crash diagnosis
+        // (You can replace this with a real logger or std::cerr if needed)
+        // std::cerr << "Destroying LoxInstance of class: " << (klass ? klass->getName() : "<null>") << std::endl;
+    }
 private:
     LoxInstance(std::shared_ptr<LoxClass> klass);
     std::shared_ptr<LoxClass> klass;
