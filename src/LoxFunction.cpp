@@ -15,7 +15,12 @@ lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<
             interpreter.executeBlock(bodyVec, environment);
         }
     } catch (const ReturnException& returnValue) {
-        if(isInitializer) return closure->getAt(0, "this");
+        if (isInitializer) {
+            if (!std::holds_alternative<std::monostate>(returnValue.getValue())) {
+                throw RuntimeError(Token(TokenType::IDENTIFIER, "return", std::monostate{}, 0), "Can't return a value from an initializer.");
+            }
+            return closure->getAt(0, "this");
+        }
         return returnValue.getValue();
     }
     if(isInitializer) {
