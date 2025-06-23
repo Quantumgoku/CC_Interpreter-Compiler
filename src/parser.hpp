@@ -34,6 +34,9 @@ public:
                 statements.push_back(stmt);
             }
         }
+        if (statements.empty()) {
+            std::cerr << "[ERROR] No statements parsed!" << std::endl;
+        }
         return statements;
     }
 
@@ -71,11 +74,11 @@ private:
 
     std::shared_ptr<Stmt> classDeclaration(){
         Token name = try_consume(TokenType::IDENTIFIER, "Expect class name.");
-        // std::shared_ptr<Expr> superclass = nullptr;
-        // if(match({TokenType::LESS})){
-        //     Token superName = try_consume(TokenType::IDENTIFIER, "Expect superclass name.");
-        //     superclass = std::make_shared<Variable>(superName);
-        // }
+        std::optional<std::shared_ptr<Expr>> superclass = std::nullopt;
+        if(match({TokenType::LESS})){
+            try_consume(TokenType::IDENTIFIER, "Expect superclass name.");
+            superclass = std::make_shared<Variable>(previous());
+        }
         try_consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
 
         std::vector<std::shared_ptr<Function>> methods;
@@ -83,7 +86,7 @@ private:
             methods.push_back(function("method"));
         }
         try_consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
-        return std::make_shared<Class>(name, methods);
+        return std::make_shared<Class>(name, superclass, methods);
     }
 
     std::shared_ptr<Function> function(const std::string& kind){
@@ -103,10 +106,6 @@ private:
         try_consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
         try_consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
         std::vector<std::shared_ptr<Stmt>> body = block();
-        // Remove the check that throws if the function body is empty
-        // if(body.empty()) {
-        //     throw error(peek(), "Function body cannot be empty.");
-        // }
         return std::make_shared<Function>(name, params, std::make_shared<Block>(body));
     }
 

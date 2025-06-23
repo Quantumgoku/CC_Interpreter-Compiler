@@ -26,9 +26,6 @@ int main(int argc, char *argv[]) {
     std::cout << std::unitbuf;
     std::cerr << std::unitbuf;
 
-    // You can use print statements as follows for debugging, they'll be visible when running tests.
-    std::cerr << "Logs from your program will appear here!" << std::endl;
-
     if (argc < 3) {
         std::cerr << "Usage: ./your_program tokenize <filename>" << std::endl;
         return 1;
@@ -38,7 +35,6 @@ int main(int argc, char *argv[]) {
 
     std::string file_contents = read_file_contents(argv[2]);
     if (file_contents.empty()) {
-        std::cout<<"EOF  null"<<std::endl;
         return 0;
     }
 

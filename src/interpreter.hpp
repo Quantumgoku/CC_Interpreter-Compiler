@@ -223,18 +223,31 @@ public:
     }
 
     lox_literal visit(const Block& stmt) const override {
-        executeBlock(stmt.statements, std::make_shared<Environment>(environment));
+        if (environment == globals) {
+            executeBlock(stmt.statements, environment);
+        } else {
+            executeBlock(stmt.statements, std::make_shared<Environment>(environment));
+        }
         return std::monostate{};
     }
 
     lox_literal visit(const Class& stmt) const override {
+        lox_literal supperClass = std::monostate{};
+        std::shared_ptr<LoxClass> superClassPtr = nullptr;
+        if (stmt.superclass) {
+            supperClass = evaluate(**stmt.superclass);
+            if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(supperClass) ||
+                !(superClassPtr = std::dynamic_pointer_cast<LoxClass>(std::get<std::shared_ptr<LoxCallable>>(supperClass)))) {
+                throw RuntimeError(stmt.name, "Superclass must be a class.");
+            }
+        }
         environment->define(stmt.name.getLexeme(), std::monostate{});
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
             std::shared_ptr<LoxFunction> function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
             methods[method->name.getLexeme()] = function;
         }
-        std::shared_ptr<LoxCallable> klass = std::make_shared<LoxClass>(stmt.name.getLexeme(), methods);
+        std::shared_ptr<LoxCallable> klass = std::make_shared<LoxClass>(stmt.name.getLexeme(), superClassPtr, methods);
         environment->assign(stmt.name, klass);
         return std::monostate{};
     }
@@ -264,8 +277,8 @@ public:
         auto previous = this->environment;
         this->environment = environment;
         try {
-            for(const auto& statement : statements){
-                execute(*statement);
+            for(size_t i = 0; i < statements.size(); ++i){
+                execute(*statements[i]);
             }
         } catch (const ReturnException&) {
             this->environment = previous;
@@ -282,16 +295,7 @@ private:
     mutable std::ostringstream oss;
 
     lox_literal lookUpVariable(const Token& name, const Expr& expr) const {
-        //std::cerr << "[Interpreter] lookUpVariable: " << name.getLexeme() << " expr ptr=" << &expr;
         auto it = locals.find(&expr);
-        // if (it != locals.end()) {
-        //     std::cerr << " found at depth " << it->second << std::endl;
-        //     int distance = it->second;
-        //     return environment->getAt(distance, name.getLexeme());
-        // } else {
-        //     std::cerr << " not found in locals, using globals" << std::endl;
-        //     return globals->getValue(name);
-        // }
         if (it != locals.end()) {
             int distance = it->second;
             return environment->getAt(distance, name.getLexeme());

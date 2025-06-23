@@ -66,10 +66,14 @@ public:
 
 class Class : public Stmt {
 public:
-    Class(Token name, std::vector<std::shared_ptr<Function>> methods) : name(name), methods(methods) {}
+    // superclass: std::optional<std::shared_ptr<Expr>>
+    // methods: std::vector<std::shared_ptr<Function>>
+    Class(Token name, std::optional<std::shared_ptr<Expr>> superclass, std::vector<std::shared_ptr<Function>> methods)
+        : name(name), superclass(superclass), methods(methods) {}
     void accept(const StmtVisitorPrint& visitor) const override { visitor.visit(*this); }
     lox_literal accept(const StmtVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token name;
+    std::optional<std::shared_ptr<Expr>> superclass;
     std::vector<std::shared_ptr<Function>> methods;
 };
 
@@ -83,7 +87,9 @@ public:
 
 class Function : public Stmt {
 public:
-    Function(Token name, std::vector<Token> params, std::shared_ptr<Stmt> body) : name(name), params(params), body(body) {}
+    // body: std::shared_ptr<Stmt>
+    Function(Token name, std::vector<Token> params, std::shared_ptr<Stmt> body)
+        : name(name), params(params), body(body) {}
     void accept(const StmtVisitorPrint& visitor) const override { visitor.visit(*this); }
     lox_literal accept(const StmtVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token name;

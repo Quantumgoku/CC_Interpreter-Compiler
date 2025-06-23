@@ -14,8 +14,10 @@ private:
     std::map<std::string, lox_literal> values;
 public:
 
-    Environment() = default;
-    Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {}
+    Environment() {
+    }
+    Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {
+    }
 
     void define(const std::string& name, const lox_literal& value = lox_literal()){
         values[name] = value;

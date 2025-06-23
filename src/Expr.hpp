@@ -161,5 +161,8 @@ public:
     Token name;
 };
 
+// All AST node fields referencing other nodes use std::shared_ptr<T>.
+// All containers (vectors) and optionals use shared_ptr for AST nodes.
+
 using ExprPtr = std::shared_ptr<Expr>;
 using ExprList = std::vector<ExprPtr>;

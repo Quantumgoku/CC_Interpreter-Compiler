@@ -10,6 +10,7 @@
 #include "RuntimeError.hpp"
 #include <vector>
 #include <unordered_map>
+#include <iostream>
 
 enum class FunctionType {
     NONE,
@@ -28,7 +29,8 @@ public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
 
     lox_literal visit(const Block& stmt) const override {
-        beginScope();
+        bool isTopLevel = scopes.empty();
+        if (!isTopLevel) beginScope();
         if (!pendingParamsStack.empty()) {
             for (const auto& param : pendingParamsStack.back()) {
                 declare(param);
@@ -37,7 +39,7 @@ public:
             pendingParamsStack.pop_back();
         }
         resolve(stmt.statements);
-        endScope();
+        if (!isTopLevel) endScope();
         return std::monostate{};
     }
 
@@ -166,11 +168,20 @@ public:
         ClassType enclosingClass = currentClass;
         currentClass = ClassType::CLASS;
         declare(stmt.name);
+        if (stmt.superclass.has_value()) {
+            auto ptr = stmt.superclass.value();
+            if (ptr) {
+                auto var = std::dynamic_pointer_cast<Variable>(ptr);
+                if (var && stmt.name.getLexeme() == var->name.getLexeme()) {
+                    throw RuntimeError(stmt.name, "A class cannot inherit from itself.");
+                }
+                resolve(*ptr);
+            }
+        }
         define(stmt.name);
         beginScope();
         scopes.back()["this"] = true; // 'this' is always defined in class scope
         for( const auto& method : stmt.methods) {
-            //FunctionType type = (method->name.getLexeme() == "init") ? FunctionType::METHOD : FunctionType::FUNCTION;
             FunctionType declaration = FunctionType::METHOD;
             if(method->name.getLexeme() == "init") {
                 declaration = FunctionType::INITIALIZER;
@@ -183,8 +194,15 @@ public:
     }
 
     void resolve(const std::vector<std::shared_ptr<Stmt>>& statements) const {
+        bool needGlobalScope = scopes.empty();
+        if (needGlobalScope) {
+            beginScope();
+        }
         for (const auto& statement : statements) {
             resolve(*statement);
+        }
+        if (needGlobalScope) {
+            endScope();
         }
     }
 
