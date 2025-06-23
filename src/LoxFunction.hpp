@@ -33,8 +33,6 @@ public:
     }
 
     ~LoxFunction() override {
-        // Defensive logging for shutdown crash diagnosis
-        // (You can replace this with a real logger or std::cerr if needed)
-        // std::cerr << "Destroying LoxFunction: " << declaration->name.getLexeme() << std::endl;
+        std::cerr << "Destroying LoxFunction: " << declaration->name.getLexeme() << std::endl;
     }
 };

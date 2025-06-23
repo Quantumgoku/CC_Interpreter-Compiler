@@ -21,7 +21,7 @@ public:
     ~LoxInstance() override {
         // Defensive logging for shutdown crash diagnosis
         // (You can replace this with a real logger or std::cerr if needed)
-        // std::cerr << "Destroying LoxInstance of class: " << (klass ? klass->getName() : "<null>") << std::endl;
+        std::cerr << "Destroying LoxInstance of class: " << (klass ? klass->getName() : "<null>") << std::endl;
     }
 private:
     LoxInstance(std::shared_ptr<LoxClass> klass);

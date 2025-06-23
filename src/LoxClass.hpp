@@ -34,9 +34,7 @@ public:
         return nullptr; // Method not found
     }
     ~LoxClass() override {
-        // Defensive logging for shutdown crash diagnosis
-        // (You can replace this with a real logger or std::cerr if needed)
-        // std::cerr << "Destroying LoxClass: " << name << std::endl;
+        std::cerr << "Destroying LoxClass: " << name << std::endl;
     }
 private:
     LoxClass(const std::string& name, std::weak_ptr<LoxClass> superclass, const std::unordered_map<std::string, std::shared_ptr<LoxFunction>>& methods)
