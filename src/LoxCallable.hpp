@@ -8,8 +8,8 @@ class Interpreter; // Forward declaration
 
 class LoxCallable {
 public:
-    virtual std::string toString() const = 0;
+    virtual ~LoxCallable() {} // Ensure proper cleanup of derived classes
     virtual size_t arity() const = 0;
     virtual lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) = 0;
-    virtual ~LoxCallable() = default;
+    virtual std::string toString() const = 0;
 };
