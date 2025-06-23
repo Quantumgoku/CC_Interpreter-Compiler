@@ -456,6 +456,10 @@ private:
             }
             return std::make_shared<Grouping>(expr.value());
         }
+        if(match({TokenType::THIS})){
+            return std::make_shared<This>(previous());
+        } 
+
         if(match({TokenType::IDENTIFIER})){
             return std::make_shared<Variable>(previous());
         }else{

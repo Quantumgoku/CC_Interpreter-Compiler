@@ -24,4 +24,10 @@ public:
     size_t arity() const override {
         return declaration->params.size();
     }
+
+    LoxFunction bind(const std::shared_ptr<LoxInstance>& instance) const {
+        auto environment = std::make_shared<Environment>(closure);
+        environment->define("this", instance);
+        return LoxFunction(declaration, environment);
+    }
 };

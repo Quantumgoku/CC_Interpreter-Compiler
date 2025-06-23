@@ -23,6 +23,7 @@ struct Grouping;
 struct Literal;
 struct Logical;
 struct Unary;
+struct This;
 struct Call;
 struct Get;
 struct Set;
@@ -36,6 +37,7 @@ public:
     virtual void visit(const Literal& expr) const = 0;
     virtual void visit(const Logical& expr) const = 0;
     virtual void visit(const Unary& expr) const = 0;
+    virtual void visit(const This& expr) const = 0;
     virtual void visit(const Call& expr) const = 0;
     virtual void visit(const Get& expr) const = 0;
     virtual void visit(const Set& expr) const = 0;
@@ -51,6 +53,7 @@ public:
     virtual lox_literal visit(const Literal& expr) const = 0;
     virtual lox_literal visit(const Logical& expr) const = 0;
     virtual lox_literal visit(const Unary& expr) const = 0;
+    virtual lox_literal visit(const This& expr) const = 0;
     virtual lox_literal visit(const Call& expr) const = 0;
     virtual lox_literal visit(const Get& expr) const = 0;
     virtual lox_literal visit(const Set& expr) const = 0;
@@ -111,6 +114,14 @@ public:
     lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token op;
     std::shared_ptr<Expr> right;
+};
+
+class This : public Expr {
+public:
+    This(Token keyword) : keyword(keyword) {}
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    Token keyword;
 };
 
 class Call : public Expr {

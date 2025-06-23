@@ -94,6 +94,11 @@ public:
         return std::monostate{};
     }
 
+    lox_literal visit(const This& expr) const override {
+        resolveLocal(expr, expr.keyword);
+        return std::monostate{};
+    }
+
     lox_literal visit(const Var& stmt) const override {
         declare(stmt.name);
         if (stmt.initializer != nullptr) {
@@ -148,11 +153,14 @@ public:
     lox_literal visit(const Class& stmt) const override {
         declare(stmt.name);
         define(stmt.name);
+        beginScope();
+        scopes.back()["this"] = true; // 'this' is always defined in class scope
         for( const auto& method : stmt.methods) {
             //FunctionType type = (method->name.getLexeme() == "init") ? FunctionType::METHOD : FunctionType::FUNCTION;
             FunctionType declaration = FunctionType::METHOD;
             resolveFunction(*method, declaration);
         }
+        endScope();
         return std::monostate{};
     }
 

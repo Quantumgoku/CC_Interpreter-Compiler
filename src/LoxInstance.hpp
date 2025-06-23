@@ -8,7 +8,7 @@
 
 class LoxClass; // Forward declaration
 
-class LoxInstance : public LoxCallable {
+class LoxInstance : public LoxCallable, public std::enable_shared_from_this<LoxInstance> {
     std::shared_ptr<LoxClass> klass;
     std::unordered_map<std::string, lox_literal> fields;
 public:

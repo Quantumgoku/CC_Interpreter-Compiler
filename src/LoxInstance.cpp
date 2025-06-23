@@ -18,7 +18,7 @@ lox_literal LoxInstance::get(const Token& name) {
     }
     std::shared_ptr<LoxFunction> method = klass->findMethod(name.getLexeme());
     if(method != nullptr) {
-        return method;
+        return std::static_pointer_cast<LoxCallable>(std::make_shared<LoxFunction>(method->bind(shared_from_this())));
     }
     throw RuntimeError(name, "Undefined property '" + name.getLexeme() + "'.");
 }

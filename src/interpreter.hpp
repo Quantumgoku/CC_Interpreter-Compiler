@@ -204,6 +204,10 @@ public:
         return value;
     }
 
+    lox_literal visit(const This& expr) const override {
+        return lookUpVariable(expr.keyword, expr);
+    }
+
     lox_literal visit(const Function& stmt) const override {
         auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment);
         environment->define(stmt.name.getLexeme(), function);

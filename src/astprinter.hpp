@@ -92,6 +92,10 @@ public:
         oss << ")";
     }
 
+    void visit(const This& expr) const override {
+        oss << "(this)";
+    }
+
 private:
     mutable std::ostringstream oss;
 
