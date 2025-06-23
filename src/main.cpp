@@ -123,12 +123,12 @@ int main(int argc, char *argv[]) {
         }
     } catch (const std::exception& e) {
         std::cerr << "Fatal error: " << e.what() << std::endl;
-        return 1;
+        std::exit(70); // Use exit, not return, to avoid destructor issues
     } catch (...) {
         std::cerr << "Unknown fatal error." << std::endl;
-        return 1;
+        std::exit(70); // Use exit, not return, to avoid destructor issues
     }
-    return 0;
+    std::exit(0); // Use exit, not return, to avoid destructor issues
 }
 
 std::string read_file_contents(const std::string& filename) {
