@@ -219,7 +219,6 @@ public:
         if (stmt.value != nullptr) {
             value = evaluate(*stmt.value);
         }
-        std::cout << "[DEBUG] Throwing ReturnException, type index: " << value.index() << std::endl;
         throw ReturnException(value);
     }
 

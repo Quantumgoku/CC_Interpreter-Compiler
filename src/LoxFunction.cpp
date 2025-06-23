@@ -17,7 +17,7 @@ lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<
     } catch (const ReturnException& returnValue) {
         if (isInitializer) {
             const auto& retVal = returnValue.getValue();
-            if (!(std::holds_alternative<std::monostate>(retVal) || retVal.index() == 0)) {
+            if (!std::holds_alternative<std::monostate>(retVal)) {
                 throw RuntimeError(Token(TokenType::IDENTIFIER, "return", std::monostate{}, 0), "Can't return a value from an initializer.");
             }
             return closure->getAt(0, "this");

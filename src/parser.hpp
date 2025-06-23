@@ -241,7 +241,7 @@ private:
         }
 
         try_consume(TokenType::SEMICOLON, "Expect ';' after return value.");
-        return std::make_shared<Return>(keyword, value ? value : std::make_shared<Literal>(std::monostate{}));
+        return std::make_shared<Return>(keyword, value);
     }
 
     std::vector<std::shared_ptr<Stmt>> block(){
