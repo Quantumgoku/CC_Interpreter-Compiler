@@ -233,11 +233,14 @@ public:
 
     lox_literal visit(const Class& stmt) const override {
         lox_literal supperClass = std::monostate{};
-        std::weak_ptr<LoxClass> superClassPtr;
+        std::shared_ptr<LoxClass> superClassPtr = nullptr;
         if (stmt.superclass) {
             supperClass = evaluate(**stmt.superclass);
-            if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(supperClass) ||
-                !(superClassPtr = std::dynamic_pointer_cast<LoxClass>(std::get<std::shared_ptr<LoxCallable>>(supperClass)))) {
+            if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(supperClass)) {
+                throw RuntimeError(stmt.name, "Superclass must be a class.");
+            }
+            superClassPtr = std::dynamic_pointer_cast<LoxClass>(std::get<std::shared_ptr<LoxCallable>>(supperClass));
+            if (!superClassPtr) {
                 throw RuntimeError(stmt.name, "Superclass must be a class.");
             }
         }
