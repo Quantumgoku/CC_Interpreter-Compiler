@@ -250,7 +250,7 @@ public:
             std::shared_ptr<LoxFunction> function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
             methods[method->name.getLexeme()] = function;
         }
-        std::shared_ptr<LoxCallable> klass = std::make_shared<LoxClass>(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), methods);
+        std::shared_ptr<LoxCallable> klass = LoxClass::create(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), methods);
         environment->assign(stmt.name, klass);
         return std::monostate{};
     }

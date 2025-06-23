@@ -11,8 +11,9 @@ class LoxInstance;
 
 class LoxClass : public LoxCallable, public std::enable_shared_from_this<LoxClass> {
 public:
-    LoxClass(const std::string& name, std::weak_ptr<LoxClass> superclass, const std::unordered_map<std::string, std::shared_ptr<LoxFunction>>& methods)
-        : name(name), superclass(superclass), methods(methods) {}
+    static std::shared_ptr<LoxClass> create(const std::string& name, std::weak_ptr<LoxClass> superclass, const std::unordered_map<std::string, std::shared_ptr<LoxFunction>>& methods) {
+        return std::shared_ptr<LoxClass>(new LoxClass(name, superclass, methods));
+    }
     std::string toString() const override { return name; } // Only return class name
     size_t arity() const override {
         auto initializer = findMethod("init");
@@ -33,6 +34,8 @@ public:
         return nullptr; // Method not found
     }
 private:
+    LoxClass(const std::string& name, std::weak_ptr<LoxClass> superclass, const std::unordered_map<std::string, std::shared_ptr<LoxFunction>>& methods)
+        : name(name), superclass(superclass), methods(methods) {}
     std::string name;
     std::weak_ptr<LoxClass> superclass; // Now weak_ptr to break cycles
     std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
