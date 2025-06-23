@@ -4,13 +4,14 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <memory>
 #include "token.hpp"
 #include "literal.hpp"
 #include "RuntimeError.hpp"
 
 class Environment : public std::enable_shared_from_this<Environment> {
 private:
-    std::shared_ptr<Environment> enclosing;
+    std::weak_ptr<Environment> enclosing;
     std::map<std::string, lox_literal> values;
 public:
 
@@ -38,8 +39,8 @@ public:
         if(it != values.end()){
             return it->second;
         }
-        else if(enclosing != nullptr){
-            return enclosing->getValue(name);
+        else if(auto enc = enclosing.lock()){
+            return enc->getValue(name);
         }
         throw RuntimeError(name, "Undefined variable '" + key + "'.");
     }
@@ -51,8 +52,8 @@ public:
             it->second = value;
             return;
         }
-        else if(enclosing != nullptr){
-            enclosing->assign(name, value);
+        else if(auto enc = enclosing.lock()){
+            enc->assign(name, value);
             return;
         }
         throw RuntimeError(name, "Undefined variable '" + key + "'.");
@@ -71,7 +72,7 @@ public:
     std::shared_ptr<Environment> ancestor(int distance) const {
         std::shared_ptr<Environment> environment = std::const_pointer_cast<Environment>(shared_from_this());
         for (int i = 0; i < distance; ++i) {
-            environment = environment->enclosing;
+            environment = environment->enclosing.lock();
         }
         return environment;
     }
