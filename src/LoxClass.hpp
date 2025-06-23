@@ -26,14 +26,14 @@ public:
         if (it != methods.end()) {
             return it->second;
         }
-        // If not found, check superclass if it exists
-        if (auto super = superclass.lock()) {
+        auto super = superclass.lock();
+        if (super) {
             return super->findMethod(name);
         }
         return nullptr; // Method not found
     }
 private:
     std::string name;
-    std::weak_ptr<LoxClass> superclass; // Optional, can be empty if no superclass
+    std::weak_ptr<LoxClass> superclass; // Now weak_ptr to break cycles
     std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
 };
