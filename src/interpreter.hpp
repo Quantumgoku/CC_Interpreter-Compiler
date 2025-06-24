@@ -223,11 +223,9 @@ public:
     }
 
     lox_literal visit(const Block& stmt) const override {
-        if (environment == globals) {
-            executeBlock(stmt.statements, environment);
-        } else {
-            executeBlock(stmt.statements, std::make_shared<Environment>(environment));
-        }
+        // Always create a new environment for a block, even at global scope
+        auto newEnv = std::make_shared<Environment>(environment);
+        executeBlock(stmt.statements, newEnv);
         return std::monostate{};
     }
 

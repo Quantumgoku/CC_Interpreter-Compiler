@@ -14,9 +14,7 @@ class LoxFunction : public LoxCallable {
     bool isInitializer = false;
 public:
     LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment> closure, bool isInitializer)
-        : declaration(std::move(declaration)), closure(std::move(closure)), isInitializer(isInitializer) {
-        std::cerr << "Constructing LoxFunction: " << this->declaration->name.getLexeme() << std::endl;
-    }
+        : declaration(std::move(declaration)), closure(std::move(closure)), isInitializer(isInitializer) {}
 
     lox_literal call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) override;
 
@@ -34,7 +32,5 @@ public:
         return LoxFunction(declaration, environment, isInitializer);
     }
 
-    ~LoxFunction() override {
-        std::cerr << "Destroying LoxFunction: " << declaration->name.getLexeme() << std::endl;
-    }
+    ~LoxFunction() override {}
 };
