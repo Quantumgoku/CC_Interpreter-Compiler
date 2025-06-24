@@ -209,16 +209,8 @@ public:
     }
 
     lox_literal visit(const Function& stmt) const override {
-        // Capture the environment where 'this' is defined, or fall back to current environment
-        std::shared_ptr<Environment> closureToCapture = environment;
-        std::shared_ptr<Environment> env = environment;
-        while (env) {
-            if (env->has("this")) {
-                closureToCapture = env;
-                break;
-            }
-            env = env->getEnclosing();
-        }
+        // Use the correct closure for nested functions
+        std::shared_ptr<Environment> closureToCapture = closureForNestedFunctions ? closureForNestedFunctions : environment;
         auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), closureToCapture, false);
         environment->define(stmt.name.getLexeme(), function);
         return std::monostate{};
@@ -255,7 +247,12 @@ public:
         environment->define(stmt.name.getLexeme(), std::monostate{});
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
-            std::shared_ptr<LoxFunction> function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
+            std::shared_ptr<LoxFunction> function;
+            // Set closureForNestedFunctions to the method closure while defining the method
+            auto prevClosure = closureForNestedFunctions;
+            closureForNestedFunctions = environment;
+            function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
+            closureForNestedFunctions = prevClosure;
             methods[method->name.getLexeme()] = function;
         }
         std::shared_ptr<LoxCallable> klass = LoxClass::create(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), methods);
@@ -301,6 +298,7 @@ public:
 private:
     std::shared_ptr<Environment> globals = std::make_shared<Environment>();
     mutable std::shared_ptr<Environment> environment = globals;
+    mutable std::shared_ptr<Environment> closureForNestedFunctions = nullptr;
     mutable std::unordered_map<const Expr*, size_t> locals;
 
     mutable std::ostringstream oss;
