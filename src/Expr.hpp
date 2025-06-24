@@ -47,17 +47,17 @@ public:
 
 class ExprVisitorEval {
 public:
-    virtual lox_literal visit(const Assign& expr) const = 0;
-    virtual lox_literal visit(const Binary& expr) const = 0;
-    virtual lox_literal visit(const Grouping& expr) const = 0;
-    virtual lox_literal visit(const Literal& expr) const = 0;
-    virtual lox_literal visit(const Logical& expr) const = 0;
-    virtual lox_literal visit(const Unary& expr) const = 0;
-    virtual lox_literal visit(const This& expr) const = 0;
-    virtual lox_literal visit(const Call& expr) const = 0;
-    virtual lox_literal visit(const Get& expr) const = 0;
-    virtual lox_literal visit(const Set& expr) const = 0;
-    virtual lox_literal visit(const Variable& expr) const = 0;
+    virtual lox_literal visit(const Assign& expr) = 0;
+    virtual lox_literal visit(const Binary& expr) = 0;
+    virtual lox_literal visit(const Grouping& expr) = 0;
+    virtual lox_literal visit(const Literal& expr) = 0;
+    virtual lox_literal visit(const Logical& expr) = 0;
+    virtual lox_literal visit(const Unary& expr) = 0;
+    virtual lox_literal visit(const This& expr) = 0;
+    virtual lox_literal visit(const Call& expr) = 0;
+    virtual lox_literal visit(const Get& expr) = 0;
+    virtual lox_literal visit(const Set& expr) = 0;
+    virtual lox_literal visit(const Variable& expr) = 0;
     virtual ~ExprVisitorEval() = default;
 };
 

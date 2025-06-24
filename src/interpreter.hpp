@@ -163,7 +163,7 @@ public:
         return value;
     }
 
-    lox_literal visit(const Call& expr) const override {
+    lox_literal visit(const Call& expr) override {
         lox_literal callee = evaluate(*expr.callee);
         std::vector<lox_literal> arguments;
 
