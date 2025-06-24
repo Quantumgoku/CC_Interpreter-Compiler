@@ -71,6 +71,14 @@ public:
         }
     }
 
+    bool has(const std::string& name) const {
+        return values.find(name) != values.end();
+    }
+
+    std::shared_ptr<Environment> getEnclosing() const {
+        return enclosing.lock();
+    }
+
     std::shared_ptr<Environment> ancestor(int distance) const {
         std::shared_ptr<Environment> environment = std::const_pointer_cast<Environment>(shared_from_this());
         for (int i = 0; i < distance; ++i) {
