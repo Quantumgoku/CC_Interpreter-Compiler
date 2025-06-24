@@ -1,14 +1,14 @@
 #include "LoxFunction.hpp"
 #include "interpreter.hpp"
 
-lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<lox_literal>& arguments) {
+lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_literal>& arguments) {
     auto environment = std::make_shared<Environment>(closure);
     for (size_t i = 0; i < declaration->params.size(); ++i) {
         environment->define(declaration->params[i].getLexeme(), arguments[i]);
     }
-    // Set closureForNestedFunctions for the duration of this call
+    // Save and set closureForNestedFunctions to the closure for the duration of the call
     auto prevClosure = interpreter.closureForNestedFunctions;
-    interpreter.closureForNestedFunctions = environment;
+    interpreter.closureForNestedFunctions = closure;
     try {
         // If the function body is a Block, execute its statements directly in the new environment
         if (auto block = std::dynamic_pointer_cast<Block>(declaration->body)) {
