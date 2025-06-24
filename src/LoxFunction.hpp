@@ -12,9 +12,12 @@ class LoxFunction : public LoxCallable {
     std::shared_ptr<Function> declaration;
     std::shared_ptr<Environment> closure;
     bool isInitializer = false;
+    std::shared_ptr<LoxFunction> original; // Points to the original function if this is a bound method
 public:
     LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment> closure, bool isInitializer)
-        : declaration(std::move(declaration)), closure(std::move(closure)), isInitializer(isInitializer) {}
+        : declaration(std::move(declaration)), closure(std::move(closure)), isInitializer(isInitializer), original(nullptr) {}
+    LoxFunction(std::shared_ptr<Function> declaration, std::shared_ptr<Environment> closure, bool isInitializer, std::shared_ptr<LoxFunction> original)
+        : declaration(std::move(declaration)), closure(std::move(closure)), isInitializer(isInitializer), original(std::move(original)) {}
 
     lox_literal call(Interpreter& interpreter, const std::vector<lox_literal>& arguments) override;
 
@@ -29,7 +32,13 @@ public:
     std::shared_ptr<LoxFunction> bind(const std::shared_ptr<LoxInstance>& instance) const {
         auto environment = std::make_shared<Environment>(closure);
         environment->define("this", instance);
-        return std::make_shared<LoxFunction>(declaration, environment, isInitializer);
+        // Always bind the original function, not a previously bound one
+        auto orig = getUnbound();
+        return std::make_shared<LoxFunction>(orig->declaration, environment, orig->isInitializer, orig);
+    }
+    std::shared_ptr<LoxFunction> getUnbound() const {
+        if (original) return original->getUnbound();
+        return std::const_pointer_cast<LoxFunction>(shared_from_this());
     }
 
     std::shared_ptr<Environment> getClosure() const { return closure; }

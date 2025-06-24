@@ -50,11 +50,12 @@ lox_literal LoxInstance::get(const Token& name) {
 }
 
 void LoxInstance::set(const Token& name, const lox_literal& value) {
-    // If assigning a function, always rebind it to this instance
+    // If assigning a function, always rebind the original (unbound) function to this instance
     if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
         auto func = std::dynamic_pointer_cast<LoxFunction>(std::get<std::shared_ptr<LoxCallable>>(value));
         if (func) {
-            fields[name.getLexeme()] = func->bind(shared_from_this());
+            auto orig = func->getUnbound();
+            fields[name.getLexeme()] = orig->bind(shared_from_this());
             return;
         }
     }
