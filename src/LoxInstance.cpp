@@ -1,7 +1,13 @@
 #include "LoxInstance.hpp"
 #include "LoxClass.hpp"
 
-LoxInstance::LoxInstance(std::shared_ptr<LoxClass> klass) : klass(std::move(klass)) {}
+LoxInstance::LoxInstance(std::shared_ptr<LoxClass> klass) : klass(std::move(klass)) {
+    std::cerr << "Constructing LoxInstance of class: " << (this->klass ? this->klass->getName() : "<null>") << std::endl;
+}
+
+LoxInstance::~LoxInstance() {
+    std::cerr << "Destroying LoxInstance of class: " << (klass ? klass->getName() : "<null>") << std::endl;
+}
 
 std::string LoxInstance::toString() const {
     return klass->getName() + " instance";
