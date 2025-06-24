@@ -181,7 +181,18 @@ public:
             throw RuntimeError(expr.paren, "Expected " + std::to_string((*functionPtr)->arity()) + " arguments but got " + std::to_string(arguments.size()) + ".");
         }
 
-        return (*functionPtr)->call(*this, arguments);
+        lox_literal result = (*functionPtr)->call(*this, arguments);
+        // If the result is a function and the callee is a method (has 'this'), bind the returned function to the same instance
+        if (std::holds_alternative<std::shared_ptr<LoxCallable>>(result)) {
+            auto returnedFunc = std::get<std::shared_ptr<LoxCallable>>(result);
+            auto returnedLoxFunc = std::dynamic_pointer_cast<LoxFunction>(returnedFunc);
+            auto calleeLoxFunc = std::dynamic_pointer_cast<LoxFunction>(*functionPtr);
+            if (returnedLoxFunc && calleeLoxFunc && calleeLoxFunc->getClosure() && calleeLoxFunc->getClosure()->has("this")) {
+                auto instance = std::get<std::shared_ptr<LoxInstance>>(calleeLoxFunc->getClosure()->getValue(Token(TokenType::IDENTIFIER, "this", std::monostate{}, 0)));
+                return returnedLoxFunc->bind(instance);
+            }
+        }
+        return result;
     }
 
     lox_literal visit(const Get& expr) override {
@@ -190,7 +201,16 @@ public:
             throw RuntimeError(expr.name, "Only instances have properties.");
         }
         auto instance = std::get<std::shared_ptr<LoxInstance>>(object);
-        return instance->get(expr.name);
+        lox_literal value = instance->get(expr.name);
+        // If the value is a method, bind it to the instance (for closures that use 'this')
+        if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
+            auto callable = std::get<std::shared_ptr<LoxCallable>>(value);
+            auto method = std::dynamic_pointer_cast<LoxFunction>(callable);
+            if (method) {
+                return method->bind(instance);
+            }
+        }
+        return value;
     }
 
     lox_literal visit(const Set& expr) override {
@@ -209,8 +229,12 @@ public:
     }
 
     lox_literal visit(const Function& stmt) override {
-        // Use the correct closure for nested functions
+        // Defensive: ensure closureToCapture is always a shared_ptr owned by the environment chain
         std::shared_ptr<Environment> closureToCapture = closureForNestedFunctions ? closureForNestedFunctions : environment;
+        // Ensure closureToCapture is not null
+        if (!closureToCapture) {
+            throw RuntimeError(stmt.name, "Internal error: closure environment null when defining function.");
+        }
         auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), closureToCapture, false);
         environment->define(stmt.name.getLexeme(), function);
         return std::monostate{};
@@ -225,8 +249,9 @@ public:
     }
 
     lox_literal visit(const Block& stmt) override {
-        // Always create a new environment for a block, even at global scope
-        auto newEnv = std::make_shared<Environment>(environment);
+        // Capture the current environment in a local shared_ptr to ensure it stays alive
+        std::shared_ptr<Environment> parentEnv = environment;
+        auto newEnv = std::make_shared<Environment>(parentEnv);
         // Only set closureForNestedFunctions if it is not already set (i.e., outermost block of a function/method)
         bool shouldSetClosure = !closureForNestedFunctions;
         auto prevClosure = closureForNestedFunctions;
@@ -257,9 +282,12 @@ public:
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
             std::shared_ptr<LoxFunction> function;
-            // Set closureForNestedFunctions to the method closure while defining the method
+            // Defensive: ensure environment is a valid shared_ptr
             auto prevClosure = closureForNestedFunctions;
             closureForNestedFunctions = environment;
+            if (!environment) {
+                throw RuntimeError(method->name, "Internal error: method closure environment expired.");
+            }
             function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
             closureForNestedFunctions = prevClosure;
             methods[method->name.getLexeme()] = function;
@@ -281,7 +309,7 @@ public:
 
     lox_literal visit(const While& stmt) override {
         while (isTruthy(evaluate(*stmt.condition))) {
-            executeBlock({stmt.body}, environment);
+            execute(*stmt.body);
         }
         return std::monostate{};
     }

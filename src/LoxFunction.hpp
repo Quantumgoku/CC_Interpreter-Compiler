@@ -26,11 +26,13 @@ public:
         return declaration->params.size();
     }
 
-    LoxFunction bind(const std::shared_ptr<LoxInstance>& instance) const {
+    std::shared_ptr<LoxFunction> bind(const std::shared_ptr<LoxInstance>& instance) const {
         auto environment = std::make_shared<Environment>(closure);
         environment->define("this", instance);
-        return LoxFunction(declaration, environment, isInitializer);
+        return std::make_shared<LoxFunction>(declaration, environment, isInitializer);
     }
+
+    std::shared_ptr<Environment> getClosure() const { return closure; }
 
     ~LoxFunction() override {}
 };

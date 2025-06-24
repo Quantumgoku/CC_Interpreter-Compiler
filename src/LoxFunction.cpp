@@ -2,7 +2,13 @@
 #include "interpreter.hpp"
 
 lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_literal>& arguments) {
-    auto environment = std::make_shared<Environment>(closure);
+    // If 'this' is already defined in the closure, use closure directly for parameters (for methods)
+    std::shared_ptr<Environment> environment;
+    if (closure->has("this")) {
+        environment = closure;
+    } else {
+        environment = std::make_shared<Environment>(closure);
+    }
     for (size_t i = 0; i < declaration->params.size(); ++i) {
         environment->define(declaration->params[i].getLexeme(), arguments[i]);
     }

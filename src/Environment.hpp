@@ -11,14 +11,12 @@
 
 class Environment : public std::enable_shared_from_this<Environment> {
 private:
-    std::weak_ptr<Environment> enclosing;
+    std::shared_ptr<Environment> enclosing;
     std::map<std::string, lox_literal> values;
 public:
-
-    Environment() {
-    }
-    Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {
-    }
+    Environment() {}
+    Environment(std::shared_ptr<Environment> enclosing) : enclosing(enclosing) {}
+    ~Environment() {}
 
     void define(const std::string& name, const lox_literal& value = lox_literal()){
         values[name] = value;
@@ -41,8 +39,8 @@ public:
             // Defensive: always return a copy, never a reference
             return lox_literal(it->second);
         }
-        else if(auto enc = enclosing.lock()){
-            return enc->getValue(name);
+        else if(enclosing){
+            return enclosing->getValue(name);
         }
         throw RuntimeError(name, "Undefined variable '" + key + "'.");
     }
@@ -54,8 +52,8 @@ public:
             it->second = value;
             return;
         }
-        else if(auto enc = enclosing.lock()){
-            enc->assign(name, value);
+        else if(enclosing){
+            enclosing->assign(name, value);
             return;
         }
         throw RuntimeError(name, "Undefined variable '" + key + "'.");
@@ -76,16 +74,17 @@ public:
     }
 
     std::shared_ptr<Environment> getEnclosing() const {
-        return enclosing.lock();
+        return enclosing;
     }
 
     std::shared_ptr<Environment> ancestor(int distance) const {
-        std::shared_ptr<Environment> environment = std::const_pointer_cast<Environment>(shared_from_this());
+        std::shared_ptr<Environment> environment = const_cast<Environment*>(this)->shared_from_this();
         for (int i = 0; i < distance; ++i) {
-            environment = environment->enclosing.lock();
-            if (!environment) {
-                throw RuntimeError(Token(TokenType::IDENTIFIER, "<env>", std::monostate{}, 0), "Internal error: environment chain broken (expired parent) during variable resolution.");
+            if (!environment->enclosing) {
+                std::cerr << "[DEBUG] ancestor: parent null at distance " << i << " for " << environment.get() << std::endl;
+                return nullptr;
             }
+            environment = environment->enclosing;
         }
         return environment;
     }

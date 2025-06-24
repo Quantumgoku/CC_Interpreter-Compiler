@@ -27,7 +27,7 @@ lox_literal LoxInstance::get(const Token& name) {
         if (method) {
             // Defensive: check shared_from_this is valid
             try {
-                return std::static_pointer_cast<LoxCallable>(std::make_shared<LoxFunction>(method->bind(shared_from_this())));
+                return method->bind(shared_from_this());
             } catch (const std::bad_weak_ptr&) {
                 throw RuntimeError(name, "Internal error: invalid instance reference.");
             }
