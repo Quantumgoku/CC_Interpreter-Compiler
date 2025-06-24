@@ -28,7 +28,8 @@ public:
         auto env = ancestor(distance);
         auto it = env->values.find(name);
         if (it != env->values.end()) {
-            return it->second;
+            // Defensive: always return a copy, never a reference
+            return lox_literal(it->second);
         }
         throw RuntimeError(Token(TokenType::IDENTIFIER, name, std::monostate{}, 0), "Undefined variable '" + name + "' at resolved depth.");
     }
@@ -37,7 +38,8 @@ public:
         const std::string& key = name.getLexeme();
         auto it = values.find(key);
         if(it != values.end()){
-            return it->second;
+            // Defensive: always return a copy, never a reference
+            return lox_literal(it->second);
         }
         else if(auto enc = enclosing.lock()){
             return enc->getValue(name);
