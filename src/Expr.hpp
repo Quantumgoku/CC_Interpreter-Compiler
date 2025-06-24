@@ -13,7 +13,7 @@ class Expr {
 public:
     virtual ~Expr() = default;
     virtual void accept(const ExprVisitorPrint& visitor) const = 0;
-    virtual lox_literal accept(const ExprVisitorEval& visitor) const = 0;
+    virtual lox_literal accept(ExprVisitorEval& visitor) const = 0;
 };
 
 // Forward declarations
@@ -65,7 +65,7 @@ class Assign : public Expr {
 public:
     Assign(Token name, std::shared_ptr<Expr> value) : name(name), value(value) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token name;
     std::shared_ptr<Expr> value;
 };
@@ -74,7 +74,7 @@ class Binary : public Expr {
 public:
     Binary(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right) : left(left), op(op), right(right) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> left;
     Token op;
     std::shared_ptr<Expr> right;
@@ -84,7 +84,7 @@ class Grouping : public Expr {
 public:
     Grouping(std::shared_ptr<Expr> expression) : expression(expression) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> expression;
 };
 
@@ -93,7 +93,7 @@ public:
     ~Literal() override = default;
     Literal(lox_literal value) : value(value) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     lox_literal value;
 };
 
@@ -101,7 +101,7 @@ class Logical : public Expr {
 public:
     Logical(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right) : left(left), op(op), right(right) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> left;
     Token op;
     std::shared_ptr<Expr> right;
@@ -111,7 +111,7 @@ class Unary : public Expr {
 public:
     Unary(Token op, std::shared_ptr<Expr> right) : op(op), right(right) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token op;
     std::shared_ptr<Expr> right;
 };
@@ -120,7 +120,7 @@ class This : public Expr {
 public:
     This(Token keyword) : keyword(keyword) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token keyword;
 };
 
@@ -128,7 +128,7 @@ class Call : public Expr {
 public:
     Call(std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> arguments) : callee(callee), paren(paren), arguments(arguments) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> callee;
     Token paren;
     std::vector<std::shared_ptr<Expr>> arguments;
@@ -138,7 +138,7 @@ class Get : public Expr {
 public:
     Get(std::shared_ptr<Expr> object, Token name) : object(object), name(name) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> object;
     Token name;
 };
@@ -147,7 +147,7 @@ class Set : public Expr {
 public:
     Set(std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value) : object(object), name(name), value(value) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     std::shared_ptr<Expr> object;
     Token name;
     std::shared_ptr<Expr> value;
@@ -157,7 +157,7 @@ class Variable : public Expr {
 public:
     Variable(Token name) : name(name) {}
     void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
-    lox_literal accept(const ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token name;
 };
 
