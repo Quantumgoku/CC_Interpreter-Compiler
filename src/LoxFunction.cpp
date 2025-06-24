@@ -6,6 +6,9 @@ lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<
     for (size_t i = 0; i < declaration->params.size(); ++i) {
         environment->define(declaration->params[i].getLexeme(), arguments[i]);
     }
+    // Set closureForNestedFunctions for the duration of this call
+    auto prevClosure = interpreter.closureForNestedFunctions;
+    interpreter.closureForNestedFunctions = environment;
     try {
         // If the function body is a Block, execute its statements directly in the new environment
         if (auto block = std::dynamic_pointer_cast<Block>(declaration->body)) {
@@ -15,6 +18,7 @@ lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<
             interpreter.executeBlock(bodyVec, environment);
         }
     } catch (const ReturnException& returnValue) {
+        interpreter.closureForNestedFunctions = prevClosure;
         if (isInitializer) {
             const auto& retVal = returnValue.getValue();
             if (!std::holds_alternative<std::monostate>(retVal)) {
@@ -24,6 +28,7 @@ lox_literal LoxFunction::call(const Interpreter& interpreter, const std::vector<
         }
         return returnValue.getValue();
     }
+    interpreter.closureForNestedFunctions = prevClosure;
     if(isInitializer) {
         // If this function is an initializer, return the instance
         return closure->getAt(0, "this");
