@@ -28,7 +28,7 @@ class Resolver : public ExprVisitorEval, public StmtVisitorEval {
 public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
 
-    lox_literal visit(const Block& stmt) const override {
+    lox_literal visit(const Block& stmt) override {
         bool isTopLevel = scopes.empty();
         if (!isTopLevel) beginScope();
         if (!pendingParamsStack.empty()) {
@@ -38,12 +38,13 @@ public:
             }
             pendingParamsStack.pop_back();
         }
-        resolve(stmt.statements);
+        auto& stmts = const_cast<std::vector<std::shared_ptr<Stmt>>&>(stmt.statements);
+        resolve(stmts);
         if (!isTopLevel) endScope();
         return std::monostate{};
     }
 
-    lox_literal visit(const Variable& expr) const override {
+    lox_literal visit(const Variable& expr) override {
         if (!scopes.empty() && scopes.back().count(expr.name.getLexeme()) && scopes.back().at(expr.name.getLexeme()) == false) {
             throw RuntimeError(expr.name, "Cannot read variable '" + expr.name.getLexeme() + "' in its own initializer.");
         }
@@ -51,19 +52,19 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Assign& expr) const override {
+    lox_literal visit(const Assign& expr) override {
         resolve(*expr.value);
         resolveLocal(expr, expr.name);
         return std::monostate{};
     }
 
-    lox_literal visit(const Binary& expr) const override {
+    lox_literal visit(const Binary& expr) override {
         resolve(*expr.left);
         resolve(*expr.right);
         return std::monostate{};
     }
 
-    lox_literal visit(const Call& expr) const override {
+    lox_literal visit(const Call& expr) override {
         resolve(*expr.callee);
         for (const auto& arg : expr.arguments) {
             resolve(*arg);
@@ -71,38 +72,38 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Grouping& expr) const override {
+    lox_literal visit(const Grouping& expr) override {
         resolve(*expr.expression);
         return std::monostate{};
     }
 
-    lox_literal visit(const Literal& expr) const override {
+    lox_literal visit(const Literal& expr) override {
         return std::monostate{};
     }
 
-    lox_literal visit(const Logical& expr) const override {
+    lox_literal visit(const Logical& expr) override {
         resolve(*expr.left);
         resolve(*expr.right);
         return std::monostate{};
     }
 
-    lox_literal visit(const Unary& expr) const override {
+    lox_literal visit(const Unary& expr) override {
         resolve(*expr.right);
         return std::monostate{};
     }
 
-    lox_literal visit(const Get& expr) const override {
+    lox_literal visit(const Get& expr) override {
         resolve(*expr.object);
         return std::monostate{};
     }
 
-    lox_literal visit(const Set& expr) const override {
+    lox_literal visit(const Set& expr) override {
         resolve(*expr.value);
         resolve(*expr.object);
         return std::monostate{};
     }
 
-    lox_literal visit(const This& expr) const override {
+    lox_literal visit(const This& expr) override {
         if (currentClass == ClassType::NONE) {
             throw RuntimeError(expr.keyword, "Can't use 'this' outside of a class.");
         }
@@ -110,7 +111,7 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Var& stmt) const override {
+    lox_literal visit(const Var& stmt) override {
         declare(stmt.name);
         if (stmt.initializer != nullptr) {
             resolve(*stmt.initializer);
@@ -119,19 +120,19 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Function& stmt) const override {
+    lox_literal visit(const Function& stmt) override {
         declare(stmt.name);
         define(stmt.name);
         resolveFunction(stmt, FunctionType::FUNCTION);
         return std::monostate{};
     }
 
-    lox_literal visit(const Expression& stmt) const override {
+    lox_literal visit(const Expression& stmt) override {
         resolve(*stmt.expression);
         return std::monostate{};
     }
 
-    lox_literal visit(const If& stmt) const override {
+    lox_literal visit(const If& stmt) override {
         resolve(*stmt.condition);
         resolve(*stmt.thenBranch);
         if (stmt.elseBranch) {
@@ -140,12 +141,12 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Print& stmt) const override {
+    lox_literal visit(const Print& stmt) override {
         resolve(*stmt.expression);
         return std::monostate{};
     }
 
-    lox_literal visit(const Return& stmt) const override {
+    lox_literal visit(const Return& stmt) override {
         if (currentFunction == FunctionType::NONE) {
             throw RuntimeError(stmt.keyword, "Can't return from top-level code.");
         }
@@ -158,13 +159,13 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const While& stmt) const override {
+    lox_literal visit(const While& stmt) override {
         resolve(*stmt.condition);
         resolve(*stmt.body);
         return std::monostate{};
     }
 
-    lox_literal visit(const Class& stmt) const override {
+    lox_literal visit(const Class& stmt) override {
         ClassType enclosingClass = currentClass;
         currentClass = ClassType::CLASS;
         declare(stmt.name);
@@ -193,12 +194,12 @@ public:
         return std::monostate{};
     }
 
-    void resolve(const std::vector<std::shared_ptr<Stmt>>& statements) const {
+    void resolve(std::vector<std::shared_ptr<Stmt>>& statements) {
         bool needGlobalScope = scopes.empty();
         if (needGlobalScope) {
             beginScope();
         }
-        for (const auto& statement : statements) {
+        for (auto& statement : statements) {
             resolve(*statement);
         }
         if (needGlobalScope) {
@@ -208,13 +209,13 @@ public:
 
 private:
     Interpreter& interpreter;
-    mutable std::vector<std::unordered_map<std::string, bool>> scopes;
+    std::vector<std::unordered_map<std::string, bool>> scopes;
     // Use a stack for pendingParams to handle nested functions correctly
-    mutable std::vector<std::vector<Token>> pendingParamsStack;
-    mutable FunctionType currentFunction = FunctionType::NONE;
-    mutable ClassType currentClass = ClassType::NONE;
+    std::vector<std::vector<Token>> pendingParamsStack;
+    FunctionType currentFunction = FunctionType::NONE;
+    ClassType currentClass = ClassType::NONE;
 
-    void resolveFunction(const Function& function, FunctionType type = FunctionType::FUNCTION) const {
+    void resolveFunction(const Function& function, FunctionType type = FunctionType::FUNCTION) {
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
         pendingParamsStack.push_back(function.params);
@@ -222,7 +223,7 @@ private:
         currentFunction = enclosingFunction;
     }
 
-    void declare(const Token& name) const {
+    void declare(const Token& name) {
         if (scopes.empty()) return;
         auto& scope = scopes.back();
         if (scope.find(name.getLexeme()) != scope.end()) {
@@ -231,23 +232,23 @@ private:
         scope[name.getLexeme()] = false;
     }
 
-    void define(const Token& name) const {
+    void define(const Token& name) {
         if (scopes.empty()) return;
         scopes.back()[name.getLexeme()] = true;
     }
 
-    void beginScope() const {
+    void beginScope() {
         scopes.push_back(std::unordered_map<std::string, bool>());
     }
 
-    void endScope() const {
+    void endScope() {
         if (scopes.empty()) {
             throw RuntimeError(Token(TokenType::IDENTIFIER, "", std::monostate{}, 0), "No scope to end.");
         }
         scopes.pop_back();
     }
 
-    void resolveLocal(const Expr& expr, const Token& name) const {
+    void resolveLocal(const Expr& expr, const Token& name) {
         for (int i = static_cast<int>(scopes.size()) - 1; i >= 0; --i) {
             auto it = scopes[i].find(name.getLexeme());
             if (it != scopes[i].end()) { // Always resolve to nearest declaration
@@ -259,11 +260,11 @@ private:
         // If not found, assume global (do not throw)
     }
 
-    void resolve(const Stmt& stmt) const {
+    void resolve(Stmt& stmt) {
         stmt.accept(*this);
     }
 
-    void resolve(const Expr& expr) const {
+    void resolve(Expr& expr) {
         expr.accept(*this);
     }
 };

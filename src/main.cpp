@@ -12,7 +12,7 @@
 
 std::string read_file_contents(const std::string& filename);
 
-void interpret(const std::vector<std::shared_ptr<Stmt>>& statements){
+void interpret(std::vector<std::shared_ptr<Stmt>>& statements){
     Interpreter interpreter;
     Resolver resolver(interpreter);
     resolver.resolve(statements);
