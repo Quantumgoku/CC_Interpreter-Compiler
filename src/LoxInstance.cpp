@@ -21,13 +21,7 @@ lox_literal LoxInstance::get(const Token& name) {
     try {
         auto it = fields.find(name.getLexeme());
         if (it != fields.end()) {
-            // If the value is a function, always rebind it to this instance
-            if (std::holds_alternative<std::shared_ptr<LoxCallable>>(it->second)) {
-                auto func = std::dynamic_pointer_cast<LoxFunction>(std::get<std::shared_ptr<LoxCallable>>(it->second));
-                if (func) {
-                    return func->bind(shared_from_this());
-                }
-            }
+            // If the value is a function, return as-is (do NOT rebind)
             return it->second;
         }
         std::shared_ptr<LoxFunction> method = klass->findMethod(name.getLexeme());
