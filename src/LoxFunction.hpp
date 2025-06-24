@@ -5,10 +5,11 @@
 #include "ReturnException.hpp"
 #include "literal.hpp"
 #include "Stmt.hpp"
+#include <memory>
 
 class Interpreter; // Forward declaration
 
-class LoxFunction : public LoxCallable {
+class LoxFunction : public LoxCallable, public std::enable_shared_from_this<LoxFunction> {
     std::shared_ptr<Function> declaration;
     std::shared_ptr<Environment> closure;
     bool isInitializer = false;
