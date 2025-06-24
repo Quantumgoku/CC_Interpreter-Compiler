@@ -18,20 +18,28 @@ lox_literal LoxInstance::get(const Token& name) {
     if (!klass) {
         throw RuntimeError(name, "Internal error: instance has no class.");
     }
-    auto it = fields.find(name.getLexeme());
-    if (it != fields.end()) {
-        return it->second;
-    }
-    std::shared_ptr<LoxFunction> method = klass->findMethod(name.getLexeme());
-    if (method) {
-        // Defensive: check shared_from_this is valid
-        try {
-            return std::static_pointer_cast<LoxCallable>(std::make_shared<LoxFunction>(method->bind(shared_from_this())));
-        } catch (const std::bad_weak_ptr&) {
-            throw RuntimeError(name, "Internal error: invalid instance reference.");
+    try {
+        auto it = fields.find(name.getLexeme());
+        if (it != fields.end()) {
+            return it->second;
         }
+        std::shared_ptr<LoxFunction> method = klass->findMethod(name.getLexeme());
+        if (method) {
+            // Defensive: check shared_from_this is valid
+            try {
+                return std::static_pointer_cast<LoxCallable>(std::make_shared<LoxFunction>(method->bind(shared_from_this())));
+            } catch (const std::bad_weak_ptr&) {
+                throw RuntimeError(name, "Internal error: invalid instance reference.");
+            }
+        }
+        throw RuntimeError(name, "Undefined property '" + name.getLexeme() + "'.");
+    } catch (const RuntimeError&) {
+        throw; // Already a RuntimeError, propagate
+    } catch (const std::exception& e) {
+        throw RuntimeError(name, std::string("Internal error: ") + e.what());
+    } catch (...) {
+        throw RuntimeError(name, "Internal error: unknown exception in property access.");
     }
-    throw RuntimeError(name, "Undefined property '" + name.getLexeme() + "'.");
 }
 
 void LoxInstance::set(const Token& name, const lox_literal& value) {
