@@ -23,44 +23,44 @@ public:
         environment = globals;
     }
 
-    lox_literal visit(const Expression& stmt) const override {
+    lox_literal visit(const Expression& stmt) override {
         return evaluate(*stmt.expression);
     }
 
-    lox_literal visit(const Print& stmt) const override {
+    lox_literal visit(const Print& stmt) override {
         lox_literal value = evaluate(*stmt.expression);
         std::cout << literal_to_string(value) << std::endl;
         return std::monostate{};
     }
 
-    void execute(Stmt& stmt) const {
+    void execute(Stmt& stmt) {
         stmt.accept(*this);
     }
 
-    void resolve(const Expr* expr, size_t depth) const {
+    void resolve(const Expr* expr, size_t depth) {
         locals.emplace(expr, depth);
     }
 
-    lox_literal evaluate(const Expr& expr) const {
+    lox_literal evaluate(const Expr& expr) {
         return expr.accept(*this);
     }
 
-    lox_literal visit(const Literal& expr) const override{
+    lox_literal visit(const Literal& expr) override{
         return std::visit([](auto&& arg) -> lox_literal {
             using T = std::decay_t<decltype(arg)>;
             return lox_literal(arg);
         }, expr.value);
     }
 
-    lox_literal visit(const Grouping& expr) const override {
+    lox_literal visit(const Grouping& expr) override {
         return evaluate(*expr.expression);
     }
 
-    lox_literal visit(const Variable& expr) const override {
+    lox_literal visit(const Variable& expr) override {
         return lookUpVariable(expr.name, expr);
     }
 
-    lox_literal visit(const Logical& expr) const override {
+    lox_literal visit(const Logical& expr) override {
         lox_literal left = evaluate(*expr.left);
         if(expr.op.getTokenType() == TokenType::OR){
             if(isTruthy(left)) return left;
@@ -71,7 +71,7 @@ public:
         return evaluate(*expr.right);
     }
 
-    lox_literal visit(const Var& stmt) const override {
+    lox_literal visit(const Var& stmt) override {
         lox_literal value;
         if (stmt.initializer != nullptr) {
             value = evaluate(*stmt.initializer);
@@ -82,7 +82,7 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Binary& expr) const override {
+    lox_literal visit(const Binary& expr) override {
         lox_literal left = evaluate(*expr.left);
         lox_literal right = evaluate(*expr.right);
         switch(expr.op.getTokenType()){
@@ -139,7 +139,7 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Unary& expr) const override {
+    lox_literal visit(const Unary& expr) override {
         lox_literal right = evaluate(*expr.right);
         switch(expr.op.getTokenType()){
             case TokenType::MINUS:
@@ -151,7 +151,7 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Assign& expr) const override {
+    lox_literal visit(const Assign& expr) override {
         lox_literal value = evaluate(*expr.value);
         auto it = locals.find(&expr);
         if (it != locals.end()) {
