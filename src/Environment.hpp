@@ -81,7 +81,6 @@ public:
         std::shared_ptr<Environment> environment = const_cast<Environment*>(this)->shared_from_this();
         for (int i = 0; i < distance; ++i) {
             if (!environment->enclosing) {
-                std::cerr << "[DEBUG] ancestor: parent null at distance " << i << " for " << environment.get() << std::endl;
                 return nullptr;
             }
             environment = environment->enclosing;
