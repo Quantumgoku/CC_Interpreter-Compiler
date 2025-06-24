@@ -75,6 +75,9 @@ public:
         std::shared_ptr<Environment> environment = std::const_pointer_cast<Environment>(shared_from_this());
         for (int i = 0; i < distance; ++i) {
             environment = environment->enclosing.lock();
+            if (!environment) {
+                throw RuntimeError(Token(TokenType::IDENTIFIER, "<env>", std::monostate{}, 0), "Internal error: environment chain broken (expired parent) during variable resolution.");
+            }
         }
         return environment;
     }
