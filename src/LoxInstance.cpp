@@ -14,13 +14,22 @@ lox_literal LoxInstance::call(const Interpreter&, const std::vector<lox_literal>
 }
 
 lox_literal LoxInstance::get(const Token& name) {
+    // Defensive: check klass is valid
+    if (!klass) {
+        throw RuntimeError(name, "Internal error: instance has no class.");
+    }
     auto it = fields.find(name.getLexeme());
     if (it != fields.end()) {
         return it->second;
     }
     std::shared_ptr<LoxFunction> method = klass->findMethod(name.getLexeme());
-    if(method != nullptr) {
-        return std::static_pointer_cast<LoxCallable>(std::make_shared<LoxFunction>(method->bind(shared_from_this())));
+    if (method) {
+        // Defensive: check shared_from_this is valid
+        try {
+            return std::static_pointer_cast<LoxCallable>(std::make_shared<LoxFunction>(method->bind(shared_from_this())));
+        } catch (const std::bad_weak_ptr&) {
+            throw RuntimeError(name, "Internal error: invalid instance reference.");
+        }
     }
     throw RuntimeError(name, "Undefined property '" + name.getLexeme() + "'.");
 }
