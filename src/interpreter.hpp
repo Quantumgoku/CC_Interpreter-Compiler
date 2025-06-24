@@ -295,10 +295,12 @@ public:
         this->environment = previous;
     }
 
+    mutable std::shared_ptr<Environment> closureForNestedFunctions = nullptr;
+
 private:
     std::shared_ptr<Environment> globals = std::make_shared<Environment>();
     mutable std::shared_ptr<Environment> environment = globals;
-    mutable std::shared_ptr<Environment> closureForNestedFunctions = nullptr;
+    
     mutable std::unordered_map<const Expr*, size_t> locals;
 
     mutable std::ostringstream oss;
