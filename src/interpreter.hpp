@@ -227,7 +227,10 @@ public:
     lox_literal visit(const Block& stmt) const override {
         // Always create a new environment for a block, even at global scope
         auto newEnv = std::make_shared<Environment>(environment);
+        auto prevClosure = closureForNestedFunctions;
+        closureForNestedFunctions = prevClosure; // propagate unchanged
         executeBlock(stmt.statements, newEnv);
+        closureForNestedFunctions = prevClosure;
         return std::monostate{};
     }
 
