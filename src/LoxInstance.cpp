@@ -9,7 +9,7 @@ std::string LoxInstance::toString() const {
     return klass->getName() + " instance";
 }
 
-lox_literal LoxInstance::call(const Interpreter&, const std::vector<lox_literal>&) {
+lox_literal LoxInstance::call(Interpreter& interpreter, const std::vector<lox_literal>&) {
     throw RuntimeError(Token(TokenType::IDENTIFIER, "", std::monostate{}, 0), "Only classes and functions are callable.");
 }
 

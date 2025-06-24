@@ -15,7 +15,7 @@ public:
     }
     std::string toString() const override;
     size_t arity() const override { return 0; }
-    lox_literal call(const Interpreter&, const std::vector<lox_literal>&) override;
+    lox_literal call(Interpreter& interpreter, const std::vector<lox_literal>&) override;
     lox_literal get(const Token& name);
     void set(const Token& name, const lox_literal& value);
     ~LoxInstance() override;
