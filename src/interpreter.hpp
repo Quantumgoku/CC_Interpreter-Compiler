@@ -23,7 +23,7 @@ public:
         environment = globals;
     }
 
-    lox_literal visit(const Expression& stmt) override {
+    lox_literal visit(const Expression& stmt) {
         return evaluate(*stmt.expression);
     }
 
@@ -184,7 +184,7 @@ public:
         return (*functionPtr)->call(*this, arguments);
     }
 
-    lox_literal visit(const Get& expr) const override {
+    lox_literal visit(const Get& expr) override {
         lox_literal object = evaluate(*expr.object);
         if(!std::holds_alternative<std::shared_ptr<LoxInstance>>(object)){
             throw RuntimeError(expr.name, "Only instances have properties.");
@@ -193,7 +193,7 @@ public:
         return instance->get(expr.name);
     }
 
-    lox_literal visit(const Set& expr) const override {
+    lox_literal visit(const Set& expr) override {
         lox_literal object = evaluate(*expr.object);
         if(!std::holds_alternative<std::shared_ptr<LoxInstance>>(object)){
             throw RuntimeError(expr.name, "Only instances have fields.");
@@ -204,11 +204,11 @@ public:
         return value;
     }
 
-    lox_literal visit(const This& expr) const override {
+    lox_literal visit(const This& expr) override {
         return lookUpVariable(expr.keyword, expr);
     }
 
-    lox_literal visit(const Function& stmt) const override {
+    lox_literal visit(const Function& stmt) override {
         // Use the correct closure for nested functions
         std::shared_ptr<Environment> closureToCapture = closureForNestedFunctions ? closureForNestedFunctions : environment;
         auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), closureToCapture, false);
@@ -216,7 +216,7 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Return& stmt) const override {
+    lox_literal visit(const Return& stmt) override {
         lox_literal value = std::monostate{};
         if (stmt.value != nullptr) {
             value = evaluate(*stmt.value);
@@ -224,7 +224,7 @@ public:
         throw ReturnException(value);
     }
 
-    lox_literal visit(const Block& stmt) const override {
+    lox_literal visit(const Block& stmt) override {
         // Always create a new environment for a block, even at global scope
         auto newEnv = std::make_shared<Environment>(environment);
         // Only set closureForNestedFunctions if it is not already set (i.e., outermost block of a function/method)
@@ -240,7 +240,7 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const Class& stmt) const override {
+    lox_literal visit(const Class& stmt) override {
         lox_literal supperClass = std::monostate{};
         std::shared_ptr<LoxClass> superClassPtr = nullptr;
         if (stmt.superclass) {
@@ -269,7 +269,7 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const If& stmt) const override {
+    lox_literal visit(const If& stmt) override {
         lox_literal condition = evaluate(*stmt.condition);
         if (isTruthy(condition)) {
             if (stmt.thenBranch) execute(*stmt.thenBranch);
@@ -279,18 +279,14 @@ public:
         return std::monostate{};
     }
 
-    lox_literal visit(const While& stmt) const override {
+    lox_literal visit(const While& stmt) override {
         while (isTruthy(evaluate(*stmt.condition))) {
             executeBlock({stmt.body}, environment);
         }
         return std::monostate{};
     }
 
-public:
-    // Add a getter for globals
-    std::shared_ptr<Environment> getGlobals() const { return globals; }
-    // Add a public method to execute a block
-    void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment) const {
+    void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment) {
         auto previous = this->environment;
         this->environment = environment;
         try {
