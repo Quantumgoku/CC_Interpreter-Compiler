@@ -2,21 +2,18 @@
 #include "interpreter.hpp"
 
 lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_literal>& arguments) {
-    // If 'this' is already defined in the closure, use closure directly for parameters (for methods)
-    std::shared_ptr<Environment> environment;
+    // Always create a new environment for parameters, with closure as parent
+    auto environment = std::make_shared<Environment>(closure);
+    // If this is a method (closure has 'this'), propagate 'this' to the new environment
     if (closure->has("this")) {
-        environment = closure;
-    } else {
-        environment = std::make_shared<Environment>(closure);
+        environment->define("this", closure->getAt(0, "this"));
     }
     for (size_t i = 0; i < declaration->params.size(); ++i) {
         environment->define(declaration->params[i].getLexeme(), arguments[i]);
     }
-    // Save and set closureForNestedFunctions to the closure for the duration of the call
     auto prevClosure = interpreter.closureForNestedFunctions;
     interpreter.closureForNestedFunctions = closure;
     try {
-        // If the function body is a Block, execute its statements directly in the new environment
         if (auto block = std::dynamic_pointer_cast<Block>(declaration->body)) {
             interpreter.executeBlock(block->statements, environment);
         } else {
@@ -26,18 +23,14 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
     } catch (const ReturnException& returnValue) {
         interpreter.closureForNestedFunctions = prevClosure;
         if (isInitializer) {
-            const auto& retVal = returnValue.getValue();
-            if (!std::holds_alternative<std::monostate>(retVal)) {
-                throw RuntimeError(Token(TokenType::IDENTIFIER, "return", std::monostate{}, 0), "Can't return a value from an initializer.");
-            }
-            return closure->getAt(0, "this");
+            // Always return 'this' from the environment
+            return environment->getAt(0, "this");
         }
         return returnValue.getValue();
     }
     interpreter.closureForNestedFunctions = prevClosure;
     if(isInitializer) {
-        // If this function is an initializer, return the instance
-        return closure->getAt(0, "this");
+        return environment->getAt(0, "this");
     }
     return lox_literal(std::monostate{});
 }
