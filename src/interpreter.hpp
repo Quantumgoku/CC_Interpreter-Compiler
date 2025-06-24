@@ -209,7 +209,19 @@ public:
     }
 
     lox_literal visit(const Function& stmt) const override {
-        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment, false);
+        // If we're inside a method (i.e., 'this' is defined in the current environment),
+        // capture the closure where 'this' is defined, not the current block environment.
+        std::shared_ptr<Environment> closureToCapture = environment;
+        // Walk up the environment chain to find where 'this' is defined
+        std::shared_ptr<Environment> env = environment;
+        while (env) {
+            if (env->has("this")) {
+                closureToCapture = env;
+                break;
+            }
+            env = env->getEnclosing();
+        }
+        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), closureToCapture, false);
         environment->define(stmt.name.getLexeme(), function);
         return std::monostate{};
     }
