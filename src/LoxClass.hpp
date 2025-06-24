@@ -20,7 +20,7 @@ public:
         if (initializer == nullptr) return 0;
         return initializer->arity();
     }
-    lox_literal call(const Interpreter&, const std::vector<lox_literal>&) override;
+    lox_literal call(Interpreter& interpreter, const std::vector<lox_literal>&) override;
     std::string getName() const { return name; }
     std::shared_ptr<LoxFunction> findMethod(const std::string& name) const {
         auto it = methods.find(name);
