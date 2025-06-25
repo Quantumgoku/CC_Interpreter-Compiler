@@ -1,5 +1,6 @@
 #include "LoxFunction.hpp"
 #include "interpreter.hpp"
+#include <iostream>
 
 lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_literal>& arguments) {
     // Always create a new environment for parameters, with closure as parent
@@ -33,4 +34,18 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
         return environment->getAt(0, "this");
     }
     return lox_literal(std::monostate{});
+}
+
+std::shared_ptr<LoxFunction> LoxFunction::bind(const std::shared_ptr<LoxInstance>& instance) const {
+    auto environment = std::make_shared<Environment>(closure);
+    environment->define("this", instance);
+    auto orig = getUnbound();
+    return std::make_shared<LoxFunction>(orig->declaration, environment, orig->isInitializer, orig);
+}
+
+std::shared_ptr<LoxFunction> LoxFunction::getUnbound() const {
+    if (original) {
+        return original->getUnbound();
+    }
+    return std::const_pointer_cast<LoxFunction>(shared_from_this());
 }

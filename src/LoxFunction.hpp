@@ -30,17 +30,9 @@ public:
         return declaration->params.size();
     }
 
-    std::shared_ptr<LoxFunction> bind(const std::shared_ptr<LoxInstance>& instance) const {
-        auto environment = std::make_shared<Environment>(closure);
-        environment->define("this", instance);
-        // Always bind the original function, not a previously bound one
-        auto orig = getUnbound();
-        return std::make_shared<LoxFunction>(orig->declaration, environment, orig->isInitializer, orig);
-    }
-    std::shared_ptr<LoxFunction> getUnbound() const {
-        if (original) return original->getUnbound();
-        return std::const_pointer_cast<LoxFunction>(shared_from_this());
-    }
+    std::shared_ptr<LoxFunction> bind(const std::shared_ptr<LoxInstance>& instance) const;
+
+    std::shared_ptr<LoxFunction> getUnbound() const;
 
     std::shared_ptr<Environment> getClosure() const { return closure; }
 

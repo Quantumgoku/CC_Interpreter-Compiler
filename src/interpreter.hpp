@@ -202,14 +202,7 @@ public:
         }
         auto instance = std::get<std::shared_ptr<LoxInstance>>(object);
         lox_literal value = instance->get(expr.name);
-        // If the value is a method, bind it to the instance (for closures that use 'this')
-        if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
-            auto callable = std::get<std::shared_ptr<LoxCallable>>(value);
-            auto method = std::dynamic_pointer_cast<LoxFunction>(callable);
-            if (method) {
-                return method->bind(instance);
-            }
-        }
+        // Do NOT rebind here! LoxInstance::get already handles correct rebinding semantics.
         return value;
     }
 
