@@ -21,12 +21,12 @@ lox_literal LoxInstance::get(const Token& name) {
     try {
         auto it = fields.find(name.getLexeme());
         if (it != fields.end()) {
-            // If the value is a function, return as-is (do NOT rebind)
+            // Per Crafting Interpreters: if the property is in fields, return as-is (do NOT rebind)
             return it->second;
         }
         std::shared_ptr<LoxFunction> method = klass->findMethod(name.getLexeme());
         if (method) {
-            // Defensive: check shared_from_this is valid
+            // Per Crafting Interpreters: if found on class, bind to this instance
             try {
                 return method->bind(shared_from_this());
             } catch (const std::bad_weak_ptr&) {
