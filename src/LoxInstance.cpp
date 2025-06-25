@@ -1,5 +1,6 @@
 #include "LoxInstance.hpp"
 #include "LoxClass.hpp"
+#include <cassert>
 
 LoxInstance::LoxInstance(std::shared_ptr<LoxClass> klass) : klass(std::move(klass)) {}
 
@@ -48,7 +49,7 @@ void LoxInstance::set(const Token& name, const lox_literal& value) {
     if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
         auto func = std::dynamic_pointer_cast<LoxFunction>(std::get<std::shared_ptr<LoxCallable>>(value));
         if (func) {
-            // Defensive: always unwrap to the original function before rebinding
+            assert(func->getUnbound()); // Debug: ensure getUnbound always returns a valid function
             auto orig = func->getUnbound();
             fields[name.getLexeme()] = orig->bind(shared_from_this());
             return;
