@@ -51,7 +51,6 @@ void LoxInstance::set(const Token& name, const lox_literal& value) {
         auto func = std::dynamic_pointer_cast<LoxFunction>(std::get<std::shared_ptr<LoxCallable>>(value));
         if (func) {
             auto orig = func->getUnbound();
-            std::cout << "[DEBUG] set(" << name.getLexeme() << "): func=" << func.get() << ", orig=" << orig.get() << std::endl;
             fields[name.getLexeme()] = orig->bind(shared_from_this());
             return;
         }
