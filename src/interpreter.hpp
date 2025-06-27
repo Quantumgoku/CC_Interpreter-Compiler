@@ -276,7 +276,6 @@ public:
                 throw RuntimeError(stmt.name, "Superclass must be a class.");
             }
         }
-        environment->define(stmt.name.getLexeme(), std::monostate{});
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
             std::shared_ptr<LoxFunction> function;
@@ -291,7 +290,7 @@ public:
             methods[method->name.getLexeme()] = function;
         }
         std::shared_ptr<LoxCallable> klass = LoxClass::create(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), methods);
-        environment->assign(stmt.name, klass);
+        environment->define(stmt.name.getLexeme(), klass);
         return std::monostate{};
     }
 
