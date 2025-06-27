@@ -15,7 +15,7 @@ std::string read_file_contents(const std::string& filename);
 void interpret(std::vector<std::shared_ptr<Stmt>>& statements){
     Interpreter interpreter;
     Resolver resolver(interpreter);
-    resolver.resolve(statements);
+    resolver.resolve(statements); // Directly resolve the statements vector
     for(const auto& statement : statements){
         interpreter.execute(*statement);
     }
@@ -81,16 +81,10 @@ int main(int argc, char *argv[]) {
                 Parser parser(tokens);
                 std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
                 if (!statements.empty()) {
-                    Interpreter interpreter;
                     try {
+                        Interpreter interpreter;
                         Resolver resolver(interpreter);
-                        resolver.resolve(statements);
-                    } catch(const RuntimeError& e) {
-                        std::cerr << e.what() << "\n";
-                        std::cerr << e.token.getLine() << std::endl;
-                        return 65; // Compile error
-                    }
-                    try {
+                        resolver.resolve(statements); // Directly resolve the statements vector
                         for(const auto& statement : statements){
                             interpreter.execute(*statement);
                         }

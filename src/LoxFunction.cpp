@@ -5,6 +5,7 @@
 lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_literal>& arguments) {
     // Always create a new environment for parameters, with closure as parent
     auto environment = std::make_shared<Environment>(closure);
+
     // If this is a method (closure has 'this'), propagate 'this' to the new environment
     if (closure->has("this")) {
         environment->define("this", closure->getAt(0, "this"));
@@ -13,7 +14,7 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
         environment->define(declaration->params[i].getLexeme(), arguments[i]);
     }
     auto prevClosure = interpreter.closureForNestedFunctions;
-    interpreter.closureForNestedFunctions = closure;
+    interpreter.closureForNestedFunctions = environment;  // Set to current function's environment, not closure
     try {
         if (auto block = std::dynamic_pointer_cast<Block>(declaration->body)) {
             interpreter.executeBlock(block->statements, environment);

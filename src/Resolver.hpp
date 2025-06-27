@@ -27,10 +27,12 @@ enum class ClassType {
 class Resolver : public ExprVisitorEval, public StmtVisitorEval {
 public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
+    void beginScope() {
+        scopes.emplace_back();
+    }
 
     lox_literal visit(const Block& stmt) override {
-        bool isTopLevel = scopes.empty();
-        if (!isTopLevel) beginScope();
+        beginScope();
         if (!pendingParamsStack.empty()) {
             for (const auto& param : pendingParamsStack.back()) {
                 declare(param);
@@ -40,7 +42,7 @@ public:
         }
         auto& stmts = const_cast<std::vector<std::shared_ptr<Stmt>>&>(stmt.statements);
         resolve(stmts);
-        if (!isTopLevel) endScope();
+        endScope();
         return std::monostate{};
     }
 
@@ -66,8 +68,8 @@ public:
 
     lox_literal visit(const Call& expr) override {
         resolve(*expr.callee);
-        for (const auto& arg : expr.arguments) {
-            resolve(*arg);
+        for (const auto& argument : expr.arguments) {
+            resolve(*argument);
         }
         return std::monostate{};
     }
@@ -195,14 +197,17 @@ public:
     }
 
     void resolve(std::vector<std::shared_ptr<Stmt>>& statements) {
-        // Ensure the global scope is always present
-        if (scopes.empty()) {
-            beginScope();
-        }
         for (auto& statement : statements) {
             resolve(*statement);
         }
-        // Do NOT end the global scope here; keep it for the lifetime of the resolver
+    }
+
+    void resolve(Stmt& stmt) {
+        stmt.accept(*this);
+    }
+
+    void resolve(Expr& expr) {
+        expr.accept(*this);
     }
 
 private:
@@ -216,8 +221,10 @@ private:
     void resolveFunction(const Function& function, FunctionType type = FunctionType::FUNCTION) {
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
+        beginScope(); // Push a new scope for the function body
         pendingParamsStack.push_back(function.params);
         resolve(*function.body); // body is a shared_ptr<Stmt>
+        endScope(); // Pop the function body scope
         currentFunction = enclosingFunction;
     }
 
@@ -237,10 +244,6 @@ private:
         scopes.back()[name.getLexeme()] = true;
     }
 
-    void beginScope() {
-        scopes.push_back(std::unordered_map<std::string, bool>());
-    }
-
     void endScope() {
         if (scopes.empty()) {
             throw RuntimeError(Token(TokenType::IDENTIFIER, "", std::monostate{}, 0), "No scope to end.");
@@ -252,19 +255,14 @@ private:
         for (int i = static_cast<int>(scopes.size()) - 1; i >= 0; --i) {
             auto it = scopes[i].find(name.getLexeme());
             if (it != scopes[i].end()) {
-                // Always resolve, including global scope (distance 0)
-                interpreter.resolve(&expr, scopes.size() - 1 - i);
+                int distance = static_cast<int>(scopes.size() - 1 - i);
+                if (i != 0 || name.getLexeme() == "this") {
+                    interpreter.resolve(&expr, distance);
+                } else {
+                }
                 return;
             }
         }
-        // If not found, assume truly global (do not throw or resolve)
-    }
-
-    void resolve(Stmt& stmt) {
-        stmt.accept(*this);
-    }
-
-    void resolve(Expr& expr) {
-        expr.accept(*this);
+        // If not found in any local scope, assume it's global - don't throw error
     }
 };

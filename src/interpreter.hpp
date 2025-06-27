@@ -15,6 +15,7 @@
 #include "lox_utils.hpp"
 #include "literal_to_string.hpp"
 #include "LoxClass.hpp"
+#include <iostream> // For std::cout and std::cerr
 
 class Interpreter : public ExprVisitorEval, public StmtVisitorEval {
 public:
@@ -37,7 +38,7 @@ public:
         stmt.accept(*this);
     }
 
-    void resolve(const Expr* expr, size_t depth) {
+    void resolve(const Expr* expr, int depth) {
         locals.emplace(expr, depth);
     }
 
@@ -155,7 +156,7 @@ public:
         lox_literal value = evaluate(*expr.value);
         auto it = locals.find(&expr);
         if (it != locals.end()) {
-            int distance = it->second;
+            int distance = static_cast<int>(it->second);
             environment->assignAt(distance, expr.name, value);
         } else {
             globals->assign(expr.name, value);
@@ -245,16 +246,20 @@ public:
         // Capture the current environment in a local shared_ptr to ensure it stays alive
         std::shared_ptr<Environment> parentEnv = environment;
         auto newEnv = std::make_shared<Environment>(parentEnv);
+
         // Only set closureForNestedFunctions if it is not already set (i.e., outermost block of a function/method)
         bool shouldSetClosure = !closureForNestedFunctions;
         auto prevClosure = closureForNestedFunctions;
         if (shouldSetClosure) {
             closureForNestedFunctions = newEnv;
         }
+
         executeBlock(stmt.statements, newEnv);
+
         if (shouldSetClosure) {
             closureForNestedFunctions = prevClosure;
         }
+
         return std::monostate{};
     }
 
@@ -307,39 +312,73 @@ public:
         return std::monostate{};
     }
 
-    void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> environment) {
-        auto previous = this->environment;
-        this->environment = environment;
+    lox_literal lookUpVariable(const Token& name, const Expr& expr) const {
+        auto it = locals.find(&expr);
+        if (it != locals.end()) {
+            int distance = it->second;
+            // Special case for 'this' - in bound methods, it's always at distance 0
+            if (name.getLexeme() == "this") {
+                distance = 0;
+            }
+            return environment->getAt(distance, name.getLexeme());
+        } else {
+            return globals->getValue(name);
+        }
+    }
+
+    void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> newEnvironment) {
+        // Save the current environment
+        auto previousEnvironment = this->environment;
+
+        // Link the new environment to the current one
+        if (previousEnvironment) {
+            newEnvironment->setEnclosing(previousEnvironment);
+        }
+
+        // Update the interpreter's environment to the new one
+        this->environment = newEnvironment;
+
         try {
-            for(size_t i = 0; i < statements.size(); ++i){
+            // Execute each statement in the block
+            for (size_t i = 0; i < statements.size(); ++i) {
                 execute(*statements[i]);
             }
         } catch (const ReturnException&) {
-            this->environment = previous;
+            // Restore the previous environment before propagating the exception
+            this->environment = previousEnvironment;
             throw;
         }
-        this->environment = previous;
+
+        // Restore the previous environment after block execution
+        this->environment = previousEnvironment;
     }
 
     mutable std::shared_ptr<Environment> closureForNestedFunctions = nullptr;
+
+    int getEnvironmentDepth() const {
+        int depth = 0;
+        std::shared_ptr<Environment> env = environment;
+        while (env) {
+            depth++;
+            env = env->getEnclosing();
+        }
+        return depth;
+    }
+
+    void printEnvironmentChain() const {
+        int depth = 0;
+        auto env = environment;
+        while (env) {
+            depth++;
+            env = env->getEnclosing();
+        }
+    }
 
 private:
     std::shared_ptr<Environment> globals = std::make_shared<Environment>();
     mutable std::shared_ptr<Environment> environment = globals;
     
-    mutable std::unordered_map<const Expr*, size_t> locals;
+    mutable std::unordered_map<const Expr*, int> locals;
 
     mutable std::ostringstream oss;
-
-    lox_literal lookUpVariable(const Token& name, const Expr& expr) const {
-        auto it = locals.find(&expr);
-        if (it != locals.end()) {
-            int distance = it->second;
-            return environment->getAt(distance, name.getLexeme());
-        } else {
-            return globals->getValue(name);
-        }
-        // Defensive: if somehow neither branch returns, throw a clear error
-        throw RuntimeError(name, "Variable resolution failed for '" + name.getLexeme() + "'.");
-    }
 };

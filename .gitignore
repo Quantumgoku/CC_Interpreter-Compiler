@@ -58,5 +58,5 @@ vcpkg_installed
 
 Lox/
 
-test.lox
+*.lox
 .vscode
