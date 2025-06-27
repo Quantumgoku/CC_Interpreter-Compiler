@@ -58,5 +58,4 @@ vcpkg_installed
 
 Lox/
 
-*.lox
 .vscode
