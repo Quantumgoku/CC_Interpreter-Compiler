@@ -256,10 +256,8 @@ private:
             auto it = scopes[i].find(name.getLexeme());
             if (it != scopes[i].end()) {
                 int distance = static_cast<int>(scopes.size() - 1 - i);
-                if (i != 0 || name.getLexeme() == "this") {
-                    interpreter.resolve(&expr, distance);
-                } else {
-                }
+                // Always record distance for local variables (any variable found in scopes)
+                interpreter.resolve(&expr, distance);
                 return;
             }
         }
