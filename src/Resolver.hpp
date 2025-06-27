@@ -8,6 +8,7 @@
 #include "literal.hpp"
 #include "Environment.hpp"
 #include "RuntimeError.hpp"
+#include "ResolveError.hpp"
 #include <vector>
 #include <unordered_map>
 #include <iostream>
@@ -48,7 +49,7 @@ public:
 
     lox_literal visit(const Variable& expr) override {
         if (!scopes.empty() && scopes.back().count(expr.name.getLexeme()) && scopes.back().at(expr.name.getLexeme()) == false) {
-            throw RuntimeError(expr.name, "Cannot read variable '" + expr.name.getLexeme() + "' in its own initializer.");
+            throw ResolveError(expr.name, "Cannot read variable '" + expr.name.getLexeme() + "' in its own initializer.");
         }
         resolveLocal(expr, expr.name);
         return std::monostate{};
@@ -107,7 +108,7 @@ public:
 
     lox_literal visit(const This& expr) override {
         if (currentClass == ClassType::NONE) {
-            throw RuntimeError(expr.keyword, "Can't use 'this' outside of a class.");
+            throw ResolveError(expr.keyword, "Can't use 'this' outside of a class.");
         }
         resolveLocal(expr, expr.keyword);
         return std::monostate{};
@@ -150,11 +151,11 @@ public:
 
     lox_literal visit(const Return& stmt) override {
         if (currentFunction == FunctionType::NONE) {
-            throw RuntimeError(stmt.keyword, "Can't return from top-level code.");
+            throw ResolveError(stmt.keyword, "Can't return from top-level code.");
         }
         if (stmt.value != nullptr) {
             if(currentFunction == FunctionType::INITIALIZER) {
-                throw RuntimeError(stmt.keyword, "Can't return a value from an initializer.");
+                throw ResolveError(stmt.keyword, "Can't return a value from an initializer.");
             }
             resolve(*stmt.value);
         }
@@ -176,7 +177,7 @@ public:
             if (ptr) {
                 auto var = std::dynamic_pointer_cast<Variable>(ptr);
                 if (var && stmt.name.getLexeme() == var->name.getLexeme()) {
-                    throw RuntimeError(stmt.name, "A class cannot inherit from itself.");
+                    throw ResolveError(stmt.name, "A class cannot inherit from itself.");
                 }
                 resolve(*ptr);
             }
@@ -234,7 +235,7 @@ private:
         if (scopes.size() == 1) return; // Allow redeclaration in global scope
         auto& scope = scopes.back();
         if (scope.find(name.getLexeme()) != scope.end()) {
-            throw RuntimeError(name, "Variable '" + name.getLexeme() + "' already declared in this scope.");
+            throw ResolveError(name, "Variable '" + name.getLexeme() + "' already declared in this scope.");
         }
         scope[name.getLexeme()] = false;
     }
@@ -246,7 +247,7 @@ private:
 
     void endScope() {
         if (scopes.empty()) {
-            throw RuntimeError(Token(TokenType::IDENTIFIER, "", std::monostate{}, 0), "No scope to end.");
+            throw ResolveError(Token(TokenType::IDENTIFIER, "", std::monostate{}, 0), "No scope to end.");
         }
         scopes.pop_back();
     }
