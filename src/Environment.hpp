@@ -4,6 +4,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 #include "literal.hpp"
 #include "token.hpp"
 #include "RuntimeError.hpp"
@@ -40,6 +41,14 @@ public:
         if (values.count(key)) return values.at(key);
         if (enclosing) return enclosing->getValue(name);
         throw RuntimeError(name, "Undefined variable '" + key + "'.");
+    }
+
+    std::vector<std::string> getVariableNames() const {
+        std::vector<std::string> names;
+        for (const auto& pair : values) {
+            names.push_back(pair.first);
+        }
+        return names;
     }
 
     void assign(const Token& name, const lox_literal& value) {

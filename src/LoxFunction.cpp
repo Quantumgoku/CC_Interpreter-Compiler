@@ -3,30 +3,54 @@
 #include <iostream>
 
 lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_literal>& arguments) {
-    // Always create a new environment for the function, with closure as parent
+    // Always create a new environment for parameters, with closure as parent
     auto environment = std::make_shared<Environment>(closure);
 
-    // If this is a method (closure has 'this'), propagate 'this' to the new environment
-    if (closure->has("this")) {
+    // If we have a bound instance, inject 'this' directly
+    if (boundInstance) {
+        environment->define("this", boundInstance);
+    }
+    // Legacy: If this is a method (closure has 'this'), propagate 'this' to the new environment
+    else if (closure->has("this")) {
         environment->define("this", closure->getAt(0, "this"));
     }
     
-    // Store the arguments for the Block visitor to handle
-    interpreter.pendingArguments = arguments;
-    interpreter.pendingParams = declaration->params;
-    
+    for (size_t i = 0; i < declaration->params.size(); ++i) {
+        environment->define(declaration->params[i].getLexeme(), arguments[i]);
+    }
     auto prevClosure = interpreter.closureForNestedFunctions;
     interpreter.closureForNestedFunctions = environment;  // Set to current function's environment, not closure
-    
-    // Save the current interpreter environment
-    auto prevEnv = interpreter.getCurrentEnvironment();
-    interpreter.setCurrentEnvironment(environment);
-    
     try {
-        // Execute the function body statement (usually a Block) through the visitor
-        interpreter.execute(*declaration->body);
+        if (auto block = std::dynamic_pointer_cast<Block>(declaration->body)) {
+            // Only for bound methods, create a separate body environment to match resolver's expectations
+            if (boundInstance) {
+                auto bodyEnvironment = std::make_shared<Environment>(environment);
+                // For initializers, also copy parameters to body environment to match resolver expectations
+                if (isInitializer) {
+                    for (size_t i = 0; i < declaration->params.size(); ++i) {
+                        bodyEnvironment->define(declaration->params[i].getLexeme(), arguments[i]);
+                    }
+                }
+                interpreter.executeBlock(block->statements, bodyEnvironment);
+            } else {
+                interpreter.executeBlock(block->statements, environment);
+            }
+        } else {
+            std::vector<std::shared_ptr<Stmt>> bodyVec = {declaration->body};
+            if (boundInstance) {
+                auto bodyEnvironment = std::make_shared<Environment>(environment);
+                // For initializers, also copy parameters to body environment to match resolver expectations
+                if (isInitializer) {
+                    for (size_t i = 0; i < declaration->params.size(); ++i) {
+                        bodyEnvironment->define(declaration->params[i].getLexeme(), arguments[i]);
+                    }
+                }
+                interpreter.executeBlock(bodyVec, bodyEnvironment);
+            } else {
+                interpreter.executeBlock(bodyVec, environment);
+            }
+        }
     } catch (const ReturnException& returnValue) {
-        interpreter.setCurrentEnvironment(prevEnv);
         interpreter.closureForNestedFunctions = prevClosure;
         if (isInitializer) {
             // Always return 'this' from the environment
@@ -34,7 +58,6 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
         }
         return returnValue.getValue();
     }
-    interpreter.setCurrentEnvironment(prevEnv);
     interpreter.closureForNestedFunctions = prevClosure;
     if(isInitializer) {
         return environment->getAt(0, "this");
@@ -43,10 +66,11 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
 }
 
 std::shared_ptr<LoxFunction> LoxFunction::bind(const std::shared_ptr<LoxInstance>& instance) const {
-    auto environment = std::make_shared<Environment>(closure);
-    environment->define("this", instance);
+    // Don't create an extra environment level - just store the instance for later injection
     auto orig = getUnbound();
-    return std::make_shared<LoxFunction>(orig->declaration, environment, orig->isInitializer, orig);
+    auto boundFunction = std::make_shared<LoxFunction>(orig->declaration, orig->closure, orig->isInitializer, orig);
+    boundFunction->boundInstance = instance;
+    return boundFunction;
 }
 
 std::shared_ptr<LoxFunction> LoxFunction::getUnbound() const {

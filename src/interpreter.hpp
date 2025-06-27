@@ -247,15 +247,6 @@ public:
         std::shared_ptr<Environment> parentEnv = environment;
         auto newEnv = std::make_shared<Environment>(parentEnv);
 
-        // Handle pending function parameters if any
-        if (!pendingParams.empty()) {
-            for (size_t i = 0; i < pendingParams.size(); ++i) {
-                newEnv->define(pendingParams[i].getLexeme(), pendingArguments[i]);
-            }
-            pendingParams.clear();
-            pendingArguments.clear();
-        }
-
         // Only set closureForNestedFunctions if it is not already set (i.e., outermost block of a function/method)
         bool shouldSetClosure = !closureForNestedFunctions;
         auto prevClosure = closureForNestedFunctions;
@@ -285,6 +276,12 @@ public:
                 throw RuntimeError(stmt.name, "Superclass must be a class.");
             }
         }
+        
+        // Create a placeholder class to define the name first
+        std::unordered_map<std::string, std::shared_ptr<LoxFunction>> emptyMethods;
+        auto placeholder = LoxClass::create(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), emptyMethods);
+        environment->define(stmt.name.getLexeme(), placeholder);
+        
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
             std::shared_ptr<LoxFunction> function;
@@ -298,6 +295,8 @@ public:
             closureForNestedFunctions = prevClosure;
             methods[method->name.getLexeme()] = function;
         }
+        
+        // Replace the placeholder with the real class
         std::shared_ptr<LoxCallable> klass = LoxClass::create(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), methods);
         environment->define(stmt.name.getLexeme(), klass);
         return std::monostate{};
@@ -335,7 +334,7 @@ public:
         auto previousEnvironment = this->environment;
 
         // Link the new environment to the current one
-        if (previousEnvironment) {
+        if (previousEnvironment && !newEnvironment->getEnclosing()) {
             newEnvironment->setEnclosing(previousEnvironment);
         }
 
@@ -358,10 +357,6 @@ public:
     }
 
     mutable std::shared_ptr<Environment> closureForNestedFunctions = nullptr;
-
-    // For function calls: parameters and arguments to be processed by Block visitor
-    std::vector<lox_literal> pendingArguments;
-    std::vector<Token> pendingParams;
 
     int getEnvironmentDepth() const {
         int depth = 0;
