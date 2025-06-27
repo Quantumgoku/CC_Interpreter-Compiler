@@ -3,6 +3,9 @@
 #include <cassert>
 #include <iostream>
 
+// Use 'class' consistently for all AST node types to avoid C4099 warnings
+// Example: class Assign; class Binary; ...
+
 LoxInstance::LoxInstance(std::shared_ptr<LoxClass> klass) : klass(std::move(klass)) {}
 
 LoxInstance::~LoxInstance() {}
@@ -46,15 +49,6 @@ lox_literal LoxInstance::get(const Token& name) {
 }
 
 void LoxInstance::set(const Token& name, const lox_literal& value) {
-    // If assigning a function, always rebind the original (unbound) function to this instance
-    if (std::holds_alternative<std::shared_ptr<LoxCallable>>(value)) {
-        auto func = std::dynamic_pointer_cast<LoxFunction>(std::get<std::shared_ptr<LoxCallable>>(value));
-        if (func) {
-            auto orig = func->getUnbound();
-            fields[name.getLexeme()] = orig->bind(shared_from_this());
-            return;
-        }
-    }
-    // For all other values, just store as-is
+    // Per Crafting Interpreters: do NOT rebind methods on assignment, just store as-is
     fields[name.getLexeme()] = value;
 }

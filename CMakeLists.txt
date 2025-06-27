@@ -15,6 +15,9 @@ list(REMOVE_ITEM SOURCE_FILES src/LoxFunction.cpp)
 # Remove astnodegenerator.cpp from the source files for the main interpreter
 list(FILTER SOURCE_FILES EXCLUDE REGEX ".*astnodegenerator\\.cpp$")
 
+# Remove missing Resolver.cpp from the build if present
+list(REMOVE_ITEM SOURCE_FILES src/Resolver.cpp)
+
 add_executable(interpreter ${SOURCE_FILES})
 
 # Add astnodegenerator as a separate executable, but only if the file exists

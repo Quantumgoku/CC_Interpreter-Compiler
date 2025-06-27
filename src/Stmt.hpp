@@ -18,15 +18,15 @@ public:
 };
 
 // Forward declarations
-struct Block;
-struct Class;
-struct Expression;
-struct Function;
-struct If;
-struct Print;
-struct Return;
-struct Var;
-struct While;
+class Block;
+class Class;
+class Expression;
+class Function;
+class If;
+class Print;
+class Return;
+class Var;
+class While;
 
 class StmtVisitorPrint {
 public:

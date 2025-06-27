@@ -17,17 +17,17 @@ public:
 };
 
 // Forward declarations
-struct Assign;
-struct Binary;
-struct Grouping;
-struct Literal;
-struct Logical;
-struct Unary;
-struct This;
-struct Call;
-struct Get;
-struct Set;
-struct Variable;
+class Assign;
+class Binary;
+class Grouping;
+class Literal;
+class Logical;
+class Unary;
+class This;
+class Call;
+class Get;
+class Set;
+class Variable;
 
 class ExprVisitorPrint {
 public:
