@@ -223,8 +223,15 @@ public:
     }
 
     lox_literal visit(const Function& stmt) override {
-        // Defensive: ensure closureToCapture is always a shared_ptr owned by the environment chain
+        // For nested functions in methods, we need to capture the environment that contains 'this'
         std::shared_ptr<Environment> closureToCapture = closureForNestedFunctions ? closureForNestedFunctions : environment;
+        
+        // If we're in a method and the current environment doesn't have 'this', 
+        // check if the enclosing environment has it
+        if (closureToCapture && !closureToCapture->has("this") && closureToCapture->getEnclosing() && closureToCapture->getEnclosing()->has("this")) {
+            closureToCapture = closureToCapture->getEnclosing();
+        }
+        
         // Ensure closureToCapture is not null
         if (!closureToCapture) {
             throw RuntimeError(stmt.name, "Internal error: closure environment null when defining function.");
@@ -323,7 +330,20 @@ public:
         auto it = locals.find(&expr);
         if (it != locals.end()) {
             int distance = it->second;
-            return environment->getAt(distance, name.getLexeme());
+            try {
+                return environment->getAt(distance, name.getLexeme());
+            } catch (const RuntimeError&) {
+                // If resolved distance fails, try searching the environment chain manually
+                // This handles cases where resolver distance calculations don't match runtime structure
+                auto current = environment;
+                while (current) {
+                    if (current->has(name.getLexeme())) {
+                        return current->getValue(name);
+                    }
+                    current = current->getEnclosing();
+                }
+                throw RuntimeError(name, "Undefined variable '" + name.getLexeme() + "'.");
+            }
         } else {
             return globals->getValue(name);
         }

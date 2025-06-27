@@ -25,11 +25,9 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
             // Only for bound methods, create a separate body environment to match resolver's expectations
             if (boundInstance) {
                 auto bodyEnvironment = std::make_shared<Environment>(environment);
-                // For initializers, also copy parameters to body environment to match resolver expectations
-                if (isInitializer) {
-                    for (size_t i = 0; i < declaration->params.size(); ++i) {
-                        bodyEnvironment->define(declaration->params[i].getLexeme(), arguments[i]);
-                    }
+                // For all bound methods, copy parameters to body environment to match resolver expectations
+                for (size_t i = 0; i < declaration->params.size(); ++i) {
+                    bodyEnvironment->define(declaration->params[i].getLexeme(), arguments[i]);
                 }
                 interpreter.executeBlock(block->statements, bodyEnvironment);
             } else {
@@ -39,11 +37,9 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
             std::vector<std::shared_ptr<Stmt>> bodyVec = {declaration->body};
             if (boundInstance) {
                 auto bodyEnvironment = std::make_shared<Environment>(environment);
-                // For initializers, also copy parameters to body environment to match resolver expectations
-                if (isInitializer) {
-                    for (size_t i = 0; i < declaration->params.size(); ++i) {
-                        bodyEnvironment->define(declaration->params[i].getLexeme(), arguments[i]);
-                    }
+                // For all bound methods, copy parameters to body environment to match resolver expectations
+                for (size_t i = 0; i < declaration->params.size(); ++i) {
+                    bodyEnvironment->define(declaration->params[i].getLexeme(), arguments[i]);
                 }
                 interpreter.executeBlock(bodyVec, bodyEnvironment);
             } else {
