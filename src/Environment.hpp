@@ -23,7 +23,13 @@ public:
     }
 
     lox_literal getAt(int distance, const std::string& name) const {
+        if (distance < 0) {
+            throw RuntimeError(Token(TokenType::IDENTIFIER, name, std::monostate{}, 0), "Internal error: negative environment distance for variable '" + name + "'.");
+        }
         auto env = ancestor(distance);
+        if (!env) {
+            throw RuntimeError(Token(TokenType::IDENTIFIER, name, std::monostate{}, 0), "Internal error: environment chain broken for variable '" + name + "' at distance " + std::to_string(distance));
+        }
         auto it = env->values.find(name);
         if (it != env->values.end()) {
             // Defensive: always return a copy, never a reference
