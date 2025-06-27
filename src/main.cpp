@@ -7,7 +7,6 @@
 #include "astprinter.hpp"
 #include "interpreter.hpp"
 #include "RuntimeError.hpp"
-#include "ResolveError.hpp"
 #include "literal.hpp"
 #include "Resolver.hpp"
 
@@ -89,10 +88,6 @@ int main(int argc, char *argv[]) {
                         for(const auto& statement : statements){
                             interpreter.execute(*statement);
                         }
-                    } catch(const ResolveError& e) {
-                        std::cerr << e.what() << "\n";
-                        std::cerr << e.token.getLine() << std::endl;
-                        return 65; // Resolution/compile-time error
                     } catch(const RuntimeError& e) {
                         std::cerr << e.what() << "\n";
                         std::cerr << e.token.getLine() << std::endl;
@@ -105,10 +100,6 @@ int main(int argc, char *argv[]) {
             }catch(const Parser::ParseError& e){
                 std::cerr << e.what() << std::endl;
                 return 65;
-            }catch(const RuntimeError& e){
-                std::cerr << e.what() << "\n";
-                std::cerr << e.token.getLine() << std::endl;
-                return 70;
             }catch(const std::exception& e){
                 std::cerr << e.what() << std::endl;
                 return 65;

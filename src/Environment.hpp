@@ -19,13 +19,16 @@ public:
 
     lox_literal getAt(int distance, const std::string& name) const {
         auto env = ancestor(distance);
-        if (env) {
-            auto it = env->values.find(name);
-            if (it != env->values.end()) {
-                return it->second;
-            }
+        if (!env) {
+            throw RuntimeError(Token(TokenType::IDENTIFIER, name, std::monostate{}, 0), 
+                              "Environment chain broken at distance " + std::to_string(distance));
         }
-        return env->values.at(name);
+        auto it = env->values.find(name);
+        if (it != env->values.end()) {
+            return it->second;
+        }
+        throw RuntimeError(Token(TokenType::IDENTIFIER, name, std::monostate{}, 0), 
+                          "Undefined variable '" + name + "' at distance " + std::to_string(distance));
     }
 
     void assignAt(int distance, const Token& name, const lox_literal& value) {

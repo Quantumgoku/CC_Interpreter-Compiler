@@ -247,6 +247,15 @@ public:
         std::shared_ptr<Environment> parentEnv = environment;
         auto newEnv = std::make_shared<Environment>(parentEnv);
 
+        // Handle pending function parameters if any
+        if (!pendingParams.empty()) {
+            for (size_t i = 0; i < pendingParams.size(); ++i) {
+                newEnv->define(pendingParams[i].getLexeme(), pendingArguments[i]);
+            }
+            pendingParams.clear();
+            pendingArguments.clear();
+        }
+
         // Only set closureForNestedFunctions if it is not already set (i.e., outermost block of a function/method)
         bool shouldSetClosure = !closureForNestedFunctions;
         auto prevClosure = closureForNestedFunctions;
@@ -315,10 +324,6 @@ public:
         auto it = locals.find(&expr);
         if (it != locals.end()) {
             int distance = it->second;
-            // Special case for 'this' - in bound methods, it's always at distance 0
-            if (name.getLexeme() == "this") {
-                distance = 0;
-            }
             return environment->getAt(distance, name.getLexeme());
         } else {
             return globals->getValue(name);
@@ -354,6 +359,10 @@ public:
 
     mutable std::shared_ptr<Environment> closureForNestedFunctions = nullptr;
 
+    // For function calls: parameters and arguments to be processed by Block visitor
+    std::vector<lox_literal> pendingArguments;
+    std::vector<Token> pendingParams;
+
     int getEnvironmentDepth() const {
         int depth = 0;
         std::shared_ptr<Environment> env = environment;
@@ -371,6 +380,15 @@ public:
             depth++;
             env = env->getEnclosing();
         }
+    }
+
+    // Allow LoxFunction to temporarily set the environment
+    std::shared_ptr<Environment> getCurrentEnvironment() const {
+        return environment;
+    }
+    
+    void setCurrentEnvironment(std::shared_ptr<Environment> env) {
+        environment = env;
     }
 
 private:
