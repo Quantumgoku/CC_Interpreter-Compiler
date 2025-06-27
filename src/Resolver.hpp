@@ -252,14 +252,12 @@ private:
         for (int i = static_cast<int>(scopes.size()) - 1; i >= 0; --i) {
             auto it = scopes[i].find(name.getLexeme());
             if (it != scopes[i].end()) {
-                // Only resolve if not global scope (i != 0)
-                if (i != 0) {
-                    interpreter.resolve(&expr, scopes.size() - 1 - i);
-                }
+                // Always resolve, including global scope (distance 0)
+                interpreter.resolve(&expr, scopes.size() - 1 - i);
                 return;
             }
         }
-        // If not found, assume global (do not throw)
+        // If not found, assume truly global (do not throw or resolve)
     }
 
     void resolve(Stmt& stmt) {
