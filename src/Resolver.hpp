@@ -195,15 +195,9 @@ public:
     }
 
     void resolve(std::vector<std::shared_ptr<Stmt>>& statements) {
-        bool needGlobalScope = scopes.empty();
-        if (needGlobalScope) {
-            beginScope();
-        }
+        // Do NOT create a new scope for the global block
         for (auto& statement : statements) {
             resolve(*statement);
-        }
-        if (needGlobalScope) {
-            endScope();
         }
     }
 
