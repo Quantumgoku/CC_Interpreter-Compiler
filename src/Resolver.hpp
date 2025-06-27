@@ -235,7 +235,6 @@ private:
     void declare(const Token& name) {
         // Only check for redeclaration in local scopes, not global
         if (scopes.empty()) return;
-        if (scopes.size() == 1) return; // Allow redeclaration in global scope
         auto& scope = scopes.back();
         if (scope.find(name.getLexeme()) != scope.end()) {
             throw RuntimeError(name, "Variable '" + name.getLexeme() + "' already declared in this scope.");
