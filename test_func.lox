@@ -1,5 +1,0 @@
-fun test() {
-  print "test function called";
-}
-
-test();

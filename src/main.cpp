@@ -84,7 +84,17 @@ int main(int argc, char *argv[]) {
                     try {
                         Interpreter interpreter;
                         Resolver resolver(interpreter);
-                        resolver.resolve(statements); // Directly resolve the statements vector
+                        
+                        // Resolve first - any errors here are compile-time errors
+                        try {
+                            resolver.resolve(statements);
+                        } catch(const RuntimeError& e) {
+                            std::cerr << e.what() << "\n";
+                            std::cerr << e.token.getLine() << std::endl;
+                            return 65; // Resolver errors are compile-time errors
+                        }
+                        
+                        // Execute - any errors here are runtime errors
                         for(const auto& statement : statements){
                             interpreter.execute(*statement);
                         }

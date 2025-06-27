@@ -1,6 +1,9 @@
 # Prerequisites
 *.d
 
+# Lox test files
+*.lox
+
 # Object files
 *.o
 *.ko
@@ -58,5 +61,4 @@ vcpkg_installed
 
 Lox/
 
-*.lox
 .vscode
