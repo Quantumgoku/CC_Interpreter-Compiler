@@ -195,10 +195,14 @@ public:
     }
 
     void resolve(std::vector<std::shared_ptr<Stmt>>& statements) {
-        // Do NOT create a new scope for the global block
+        // Ensure the global scope is always present
+        if (scopes.empty()) {
+            beginScope();
+        }
         for (auto& statement : statements) {
             resolve(*statement);
         }
+        // Do NOT end the global scope here; keep it for the lifetime of the resolver
     }
 
 private:
