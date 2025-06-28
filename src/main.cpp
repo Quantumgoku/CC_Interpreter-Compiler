@@ -35,9 +35,6 @@ int main(int argc, char *argv[]) {
         const std::string command = argv[1];
 
         std::string file_contents = read_file_contents(argv[2]);
-        if (file_contents.empty()) {
-            return 0;
-        }
 
         if (command == "tokenize") {
             Tokenizer tokenizer(file_contents, true);
