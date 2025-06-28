@@ -333,8 +333,7 @@ public:
             try {
                 return environment->getAt(distance, name.getLexeme());
             } catch (const RuntimeError&) {
-                // If resolved distance fails, try searching the environment chain manually
-                // This handles cases where resolver distance calculations don't match runtime structure
+                // Fallback for environment structure mismatches
                 auto current = environment;
                 while (current) {
                     if (current->has(name.getLexeme())) {
