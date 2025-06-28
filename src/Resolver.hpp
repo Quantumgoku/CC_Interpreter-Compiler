@@ -223,7 +223,15 @@ private:
             define(param);
         }
         
-        resolve(*function.body); // Resolve the body statements
+        // Resolve the function body statements directly (not as a block)
+        if (auto block = std::dynamic_pointer_cast<Block>(function.body)) {
+            // For function body blocks, resolve statements directly without creating a new scope
+            auto& stmts = const_cast<std::vector<std::shared_ptr<Stmt>>&>(block->statements);
+            resolve(stmts);
+        } else {
+            resolve(*function.body);
+        }
+        
         endScope(); // Pop this function's scope
         currentFunction = enclosingFunction;
     }

@@ -18,10 +18,9 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
 
     try {
         if (auto block = std::dynamic_pointer_cast<Block>(declaration->body)) {
-            // Function body is a block - the resolver creates an additional scope for the block
-            // so we need to create an additional environment to match
-            auto blockEnvironment = std::make_shared<Environment>(environment);
-            interpreter.executeBlock(block->statements, blockEnvironment);
+            // Function body blocks are resolved directly in the function scope
+            // so execute them directly in the function environment (no additional environment)
+            interpreter.executeBlock(block->statements, environment);
         } else {
             std::vector<std::shared_ptr<Stmt>> bodyVec = {declaration->body};
             interpreter.executeBlock(bodyVec, environment);
