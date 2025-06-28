@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <iostream>
 
+/** Track the type of function currently being resolved. */
 enum class FunctionType {
     NONE,
     FUNCTION,
@@ -19,19 +20,28 @@ enum class FunctionType {
     METHOD
 };
 
+/** Track the type of class currently being resolved. */
 enum class ClassType {
     NONE,
     CLASS,
     SUBCLASS
 };
 
+/**
+ * The Resolver performs static analysis on the AST to resolve variable 
+ * bindings and detect scope-related errors. It calculates the distance
+ * from each variable use to its declaration for efficient lookup.
+ */
 class Resolver : public ExprVisitorEval, public StmtVisitorEval {
 public:
     Resolver(Interpreter& interpreter) : interpreter(interpreter) {}
+    
+    /** Start a new lexical scope. */
     void beginScope() {
         scopes.emplace_back();
     }
 
+    /** Resolve a block statement by creating a new scope. */
     lox_literal visit(const Block& stmt) override {
         beginScope();
         auto& stmts = const_cast<std::vector<std::shared_ptr<Stmt>>&>(stmt.statements);
@@ -40,6 +50,7 @@ public:
         return std::monostate{};
     }
 
+    /** Resolve variable access, checking for self-initialization. */
     lox_literal visit(const Variable& expr) override {
         if (!scopes.empty() && scopes.back().count(expr.name.getLexeme()) && scopes.back().at(expr.name.getLexeme()) == false) {
             throw RuntimeError(expr.name, "Cannot read variable '" + expr.name.getLexeme() + "' in its own initializer.");
@@ -48,6 +59,7 @@ public:
         return std::monostate{};
     }
 
+    /** Resolve variable assignment. */
     lox_literal visit(const Assign& expr) override {
         resolve(*expr.value);
         resolveLocal(expr, expr.name);
@@ -99,6 +111,7 @@ public:
         return std::monostate{};
     }
 
+    /** Resolve 'this' keyword, ensuring it's used inside a class. */
     lox_literal visit(const This& expr) override {
         if (currentClass == ClassType::NONE) {
             throw RuntimeError(expr.keyword, "Can't use 'this' outside of a class.");
@@ -107,6 +120,7 @@ public:
         return std::monostate{};
     }
 
+    /** Resolve 'super' keyword, ensuring it's used in a subclass. */
     lox_literal visit(const Super& expr) override {
         if (currentClass == ClassType::NONE) {
             throw RuntimeError(expr.keyword, "Can't use 'super' outside of a class.");

@@ -15,37 +15,51 @@
 #include "lox_utils.hpp"
 #include "literal_to_string.hpp"
 #include "LoxClass.hpp"
-#include <iostream> // For std::cout and std::cerr
+#include <iostream>
 
+/**
+ * The Interpreter evaluates Lox expressions and executes statements.
+ * It implements the visitor pattern for both expressions and statements,
+ * managing execution environments and variable resolution.
+ */
 class Interpreter : public ExprVisitorEval, public StmtVisitorEval {
 public:
+    /**
+     * Initialize the interpreter with global environment and built-in functions.
+     */
     Interpreter() {
         globals->define("clock", std::make_shared<LoxClock>());
         environment = globals;
     }
 
+    /** Execute an expression statement and return the result. */
     lox_literal visit(const Expression& stmt) {
         return evaluate(*stmt.expression);
     }
 
+    /** Execute a print statement, outputting the value to stdout. */
     lox_literal visit(const Print& stmt) override {
         lox_literal value = evaluate(*stmt.expression);
         std::cout << literal_to_string(value) << std::endl;
         return std::monostate{};
     }
 
+    /** Execute any statement using the visitor pattern. */
     void execute(Stmt& stmt) {
         stmt.accept(*this);
     }
 
+    /** Store the resolved distance for a variable lookup. Called by the Resolver. */
     void resolve(const Expr* expr, int depth) {
         locals.emplace(expr, depth);
     }
 
+    /** Evaluate any expression using the visitor pattern. */
     lox_literal evaluate(const Expr& expr) {
         return expr.accept(*this);
     }
 
+    /** Return the literal value directly. */
     lox_literal visit(const Literal& expr) override{
         return std::visit([](auto&& arg) -> lox_literal {
             using T = std::decay_t<decltype(arg)>;
@@ -53,14 +67,17 @@ public:
         }, expr.value);
     }
 
+    /** Evaluate the grouped expression. */
     lox_literal visit(const Grouping& expr) override {
         return evaluate(*expr.expression);
     }
 
+    /** Look up a variable's value using resolved distance or global scope. */
     lox_literal visit(const Variable& expr) override {
         return lookUpVariable(expr.name, expr);
     }
 
+    /** Handle logical operators (AND, OR) with short-circuit evaluation. */
     lox_literal visit(const Logical& expr) override {
         lox_literal left = evaluate(*expr.left);
         if(expr.op.getTokenType() == TokenType::OR){
@@ -68,10 +85,10 @@ public:
         } else if(expr.op.getTokenType() == TokenType::AND){
             if(!isTruthy(left)) return left;
         }
-        // Only evaluate right if needed (short-circuit)
         return evaluate(*expr.right);
     }
 
+    /** Declare a variable in the current environment. */
     lox_literal visit(const Var& stmt) override {
         lox_literal value;
         if (stmt.initializer != nullptr) {
@@ -83,6 +100,7 @@ public:
         return std::monostate{};
     }
 
+    /** Handle binary operators (+, -, *, /, ==, !=, <, >, <=, >=). */
     lox_literal visit(const Binary& expr) override {
         lox_literal left = evaluate(*expr.left);
         lox_literal right = evaluate(*expr.right);
@@ -140,6 +158,7 @@ public:
         return std::monostate{};
     }
 
+    /** Handle unary operators (-, !). */
     lox_literal visit(const Unary& expr) override {
         lox_literal right = evaluate(*expr.right);
         switch(expr.op.getTokenType()){
@@ -152,6 +171,7 @@ public:
         return std::monostate{};
     }
 
+    /** Assign a value to a variable, using resolved distance if available. */
     lox_literal visit(const Assign& expr) override {
         lox_literal value = evaluate(*expr.value);
         auto it = locals.find(&expr);
@@ -164,6 +184,10 @@ public:
         return value;
     }
 
+    /** 
+     * Execute a function or method call. Also handles special case where 
+     * a method returns a closure that should be bound to the same instance.
+     */
     lox_literal visit(const Call& expr) override {
         lox_literal callee = evaluate(*expr.callee);
         std::vector<lox_literal> arguments;
@@ -183,19 +207,22 @@ public:
         }
 
         lox_literal result = (*functionPtr)->call(*this, arguments);
-        // If the result is a function and the callee is a method (has 'this'), bind the returned function to the same instance
+        
+        // Special handling for closures returned from methods:
+        // If a bound method returns a function, bind that function to the same instance.
+        // This ensures that closures using 'super' or 'this' work correctly.
         if (std::holds_alternative<std::shared_ptr<LoxCallable>>(result)) {
             auto returnedFunc = std::get<std::shared_ptr<LoxCallable>>(result);
             auto returnedLoxFunc = std::dynamic_pointer_cast<LoxFunction>(returnedFunc);
             auto calleeLoxFunc = std::dynamic_pointer_cast<LoxFunction>(*functionPtr);
             if (returnedLoxFunc && calleeLoxFunc && calleeLoxFunc->getBoundInstance()) {
-                // Bind the returned function to the same instance as the calling method
                 return returnedLoxFunc->bind(calleeLoxFunc->getBoundInstance());
             }
         }
         return result;
     }
 
+    /** Get a property from an instance (instance.property). */
     lox_literal visit(const Get& expr) override {
         lox_literal object = evaluate(*expr.object);
         if(!std::holds_alternative<std::shared_ptr<LoxInstance>>(object)){
@@ -203,10 +230,10 @@ public:
         }
         auto instance = std::get<std::shared_ptr<LoxInstance>>(object);
         lox_literal value = instance->get(expr.name);
-        // Do NOT rebind here! LoxInstance::get already handles correct rebinding semantics.
         return value;
     }
 
+    /** Set a property on an instance (instance.property = value). */
     lox_literal visit(const Set& expr) override {
         lox_literal object = evaluate(*expr.object);
         if(!std::holds_alternative<std::shared_ptr<LoxInstance>>(object)){
@@ -218,15 +245,22 @@ public:
         return value;
     }
 
+    /** Look up 'this' reference using resolved distance. */
     lox_literal visit(const This& expr) override {
         return lookUpVariable(expr.keyword, expr);
     }
 
+    /** 
+     * Handle 'super.method' calls. Finds the superclass method and binds it 
+     * to the current instance. Works correctly in closures by looking for 
+     * 'this' in the execution environment.
+     */
     lox_literal visit(const Super& expr) override {
         int distance = locals.at(&expr);
         auto superclass = environment->getAt(distance, "super");
         
-        // Look for "this" at distance 0 in the execution environment
+        // Look for 'this' in the execution environment (distance 0)
+        // This works for both direct method calls and closures
         auto instance = environment->getAt(0, "this");
         
         auto superclassPtr = std::get<std::shared_ptr<LoxCallable>>(superclass);
@@ -244,13 +278,14 @@ public:
         return method->bind(instancePtr);
     }
 
+    /** Create a function and store it in the current environment. */
     lox_literal visit(const Function& stmt) override {
-        // Capture the current environment where the function is declared
         auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment, false);
         environment->define(stmt.name.getLexeme(), function);
         return std::monostate{};
     }
 
+    /** Handle return statements by throwing a special exception. */
     lox_literal visit(const Return& stmt) override {
         lox_literal value = std::monostate{};
         if (stmt.value != nullptr) {
@@ -259,13 +294,17 @@ public:
         throw ReturnException(value);
     }
 
+    /** Execute a block with a new environment scope. */
     lox_literal visit(const Block& stmt) override {
-        // Create a new environment for this block
         auto newEnv = std::make_shared<Environment>(environment);
         executeBlock(stmt.statements, newEnv);
         return std::monostate{};
     }
 
+    /**
+     * Define a class with inheritance support. Creates proper environment 
+     * chains for 'super' and 'this' binding in methods.
+     */
     lox_literal visit(const Class& stmt) override {
         lox_literal supperClass = std::monostate{};
         std::shared_ptr<LoxClass> superClassPtr = nullptr;
@@ -282,35 +321,32 @@ public:
 
         environment->define(stmt.name.getLexeme(), std::monostate{});
         
-        // Save the current environment (where the class name is defined)
         std::shared_ptr<Environment> classEnvironment = environment;
         
-        // If there's a superclass, create the super environment
+        // Create environment for 'super' if there's a superclass
         if (stmt.superclass) {
             environment = std::make_shared<Environment>(classEnvironment);
             environment->define("super", superClassPtr);
         }
         
-        // Create the this environment (this is what methods will close over)
+        // Create environment for 'this' - methods will capture this environment
         std::shared_ptr<Environment> methodClosureEnv = std::make_shared<Environment>(environment);
-        methodClosureEnv->define("this", std::monostate{}); // placeholder, will be replaced during binding
+        methodClosureEnv->define("this", std::monostate{});
         
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
-            // Methods capture the methodClosureEnv (which has this and potentially super)
             auto function = std::make_shared<LoxFunction>(method, methodClosureEnv, method->name.getLexeme() == "init");
             methods[method->name.getLexeme()] = function;
         }
         
-        // Restore the original environment for defining the class
         environment = classEnvironment;
         
-        // Create the actual class
         std::shared_ptr<LoxCallable> klass = LoxClass::create(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), methods);
         environment->define(stmt.name.getLexeme(), klass);
         return std::monostate{};
     }
 
+    /** Execute if statement with optional else branch. */
     lox_literal visit(const If& stmt) override {
         lox_literal condition = evaluate(*stmt.condition);
         if (isTruthy(condition)) {
@@ -321,6 +357,7 @@ public:
         return std::monostate{};
     }
 
+    /** Execute while loop. */
     lox_literal visit(const While& stmt) override {
         while (isTruthy(evaluate(*stmt.condition))) {
             execute(*stmt.body);
@@ -328,6 +365,10 @@ public:
         return std::monostate{};
     }
 
+    /** 
+     * Look up a variable by name, using resolved distance if available,
+     * otherwise searching in global scope.
+     */
     lox_literal lookUpVariable(const Token& name, const Expr& expr) const {
         auto it = locals.find(&expr);
         if (it != locals.end()) {
@@ -338,33 +379,32 @@ public:
         }
     }
 
+    /** 
+     * Execute a block of statements in a new environment scope.
+     * Properly handles exceptions and restores the previous environment.
+     */
     void executeBlock(const std::vector<std::shared_ptr<Stmt>>& statements, std::shared_ptr<Environment> newEnvironment) {
-        // Save the current environment
         auto previousEnvironment = this->environment;
 
-        // Link the new environment to the current one
         if (previousEnvironment && !newEnvironment->getEnclosing()) {
             newEnvironment->setEnclosing(previousEnvironment);
         }
 
-        // Update the interpreter's environment to the new one
         this->environment = newEnvironment;
 
         try {
-            // Execute each statement in the block
             for (size_t i = 0; i < statements.size(); ++i) {
                 execute(*statements[i]);
             }
         } catch (const ReturnException&) {
-            // Restore the previous environment before propagating the exception
             this->environment = previousEnvironment;
             throw;
         }
 
-        // Restore the previous environment after block execution
         this->environment = previousEnvironment;
     }
 
+    /** Get the depth of the current environment chain (for debugging). */
     int getEnvironmentDepth() const {
         int depth = 0;
         std::shared_ptr<Environment> env = environment;
@@ -375,6 +415,7 @@ public:
         return depth;
     }
 
+    /** Print the environment chain (for debugging). */
     void printEnvironmentChain() const {
         int depth = 0;
         auto env = environment;
@@ -384,20 +425,23 @@ public:
         }
     }
 
-    // Allow LoxFunction to temporarily set the environment
+    /** Get the current environment (used by LoxFunction). */
     std::shared_ptr<Environment> getCurrentEnvironment() const {
         return environment;
     }
     
+    /** Set the current environment (used by LoxFunction). */
     void setCurrentEnvironment(std::shared_ptr<Environment> env) {
         environment = env;
     }
 
 private:
+    /** Global environment containing built-in functions. */
     std::shared_ptr<Environment> globals = std::make_shared<Environment>();
+    /** Current execution environment. */
     mutable std::shared_ptr<Environment> environment = globals;
-    
+    /** Map of expressions to their resolved variable distances. */
     mutable std::unordered_map<const Expr*, int> locals;
-
+    /** String stream for output formatting. */
     mutable std::ostringstream oss;
 };
