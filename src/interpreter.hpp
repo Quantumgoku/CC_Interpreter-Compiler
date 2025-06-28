@@ -188,9 +188,9 @@ public:
             auto returnedFunc = std::get<std::shared_ptr<LoxCallable>>(result);
             auto returnedLoxFunc = std::dynamic_pointer_cast<LoxFunction>(returnedFunc);
             auto calleeLoxFunc = std::dynamic_pointer_cast<LoxFunction>(*functionPtr);
-            if (returnedLoxFunc && calleeLoxFunc && calleeLoxFunc->getClosure() && calleeLoxFunc->getClosure()->has("this")) {
-                auto instance = std::get<std::shared_ptr<LoxInstance>>(calleeLoxFunc->getClosure()->getValue(Token(TokenType::IDENTIFIER, "this", std::monostate{}, 0)));
-                return returnedLoxFunc->bind(instance);
+            if (returnedLoxFunc && calleeLoxFunc && calleeLoxFunc->getBoundInstance()) {
+                // Bind the returned function to the same instance as the calling method
+                return returnedLoxFunc->bind(calleeLoxFunc->getBoundInstance());
             }
         }
         return result;
@@ -226,7 +226,7 @@ public:
         int distance = locals.at(&expr);
         auto superclass = environment->getAt(distance, "super");
         
-        // "this" should be in the current execution environment (distance 0)
+        // Look for "this" at distance 0 in the execution environment
         auto instance = environment->getAt(0, "this");
         
         auto superclassPtr = std::get<std::shared_ptr<LoxCallable>>(superclass);

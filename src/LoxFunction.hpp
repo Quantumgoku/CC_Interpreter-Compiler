@@ -38,5 +38,7 @@ public:
 
     std::shared_ptr<Environment> getClosure() const { return closure; }
 
+    std::shared_ptr<LoxInstance> getBoundInstance() const { return boundInstance; }
+
     ~LoxFunction() override {}
 };
