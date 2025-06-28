@@ -33,13 +33,6 @@ public:
 
     lox_literal visit(const Block& stmt) override {
         beginScope();
-        if (!pendingParamsStack.empty()) {
-            for (const auto& param : pendingParamsStack.back()) {
-                declare(param);
-                define(param);
-            }
-            pendingParamsStack.pop_back();
-        }
         auto& stmts = const_cast<std::vector<std::shared_ptr<Stmt>>&>(stmt.statements);
         resolve(stmts);
         endScope();
@@ -211,24 +204,27 @@ public:
 private:
     Interpreter& interpreter;
     std::vector<std::unordered_map<std::string, bool>> scopes;
-    // Use a stack for pendingParams to handle nested functions correctly
-    std::vector<std::vector<Token>> pendingParamsStack;
     FunctionType currentFunction = FunctionType::NONE;
     ClassType currentClass = ClassType::NONE;
 
     void resolveFunction(const Function& function, FunctionType type = FunctionType::FUNCTION) {
         FunctionType enclosingFunction = currentFunction;
         currentFunction = type;
-        beginScope(); // Push a new scope for the function body
+        beginScope(); // Create scope for this function
         
-        // For methods, add 'this' to the method scope
+        // Add 'this' for methods
         if (type == FunctionType::METHOD || type == FunctionType::INITIALIZER) {
             scopes.back()["this"] = true;
         }
         
-        pendingParamsStack.push_back(function.params);
-        resolve(*function.body); // body is a shared_ptr<Stmt>
-        endScope(); // Pop the function body scope
+        // Add parameters to this function's scope
+        for (const auto& param : function.params) {
+            declare(param);
+            define(param);
+        }
+        
+        resolve(*function.body); // Resolve the body statements
+        endScope(); // Pop this function's scope
         currentFunction = enclosingFunction;
     }
 

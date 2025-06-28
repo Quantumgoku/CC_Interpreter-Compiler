@@ -223,20 +223,8 @@ public:
     }
 
     lox_literal visit(const Function& stmt) override {
-        // For nested functions in methods, we need to capture the environment that contains 'this'
-        std::shared_ptr<Environment> closureToCapture = closureForNestedFunctions ? closureForNestedFunctions : environment;
-        
-        // If we're in a method and the current environment doesn't have 'this', 
-        // check if the enclosing environment has it
-        if (closureToCapture && !closureToCapture->has("this") && closureToCapture->getEnclosing() && closureToCapture->getEnclosing()->has("this")) {
-            closureToCapture = closureToCapture->getEnclosing();
-        }
-        
-        // Ensure closureToCapture is not null
-        if (!closureToCapture) {
-            throw RuntimeError(stmt.name, "Internal error: closure environment null when defining function.");
-        }
-        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), closureToCapture, false);
+        // Capture the current environment where the function is declared
+        auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment, false);
         environment->define(stmt.name.getLexeme(), function);
         return std::monostate{};
     }
@@ -250,23 +238,9 @@ public:
     }
 
     lox_literal visit(const Block& stmt) override {
-        // Capture the current environment in a local shared_ptr to ensure it stays alive
-        std::shared_ptr<Environment> parentEnv = environment;
-        auto newEnv = std::make_shared<Environment>(parentEnv);
-
-        // Only set closureForNestedFunctions if it is not already set (i.e., outermost block of a function/method)
-        bool shouldSetClosure = !closureForNestedFunctions;
-        auto prevClosure = closureForNestedFunctions;
-        if (shouldSetClosure) {
-            closureForNestedFunctions = newEnv;
-        }
-
+        // Create a new environment for this block
+        auto newEnv = std::make_shared<Environment>(environment);
         executeBlock(stmt.statements, newEnv);
-
-        if (shouldSetClosure) {
-            closureForNestedFunctions = prevClosure;
-        }
-
         return std::monostate{};
     }
 
@@ -291,15 +265,10 @@ public:
         
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
-            std::shared_ptr<LoxFunction> function;
-            // Defensive: ensure environment is a valid shared_ptr
-            auto prevClosure = closureForNestedFunctions;
-            closureForNestedFunctions = environment;
             if (!environment) {
                 throw RuntimeError(method->name, "Internal error: method closure environment expired.");
             }
-            function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
-            closureForNestedFunctions = prevClosure;
+            auto function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
             methods[method->name.getLexeme()] = function;
         }
         
@@ -330,19 +299,7 @@ public:
         auto it = locals.find(&expr);
         if (it != locals.end()) {
             int distance = it->second;
-            try {
-                return environment->getAt(distance, name.getLexeme());
-            } catch (const RuntimeError&) {
-                // Fallback for environment structure mismatches
-                auto current = environment;
-                while (current) {
-                    if (current->has(name.getLexeme())) {
-                        return current->getValue(name);
-                    }
-                    current = current->getEnclosing();
-                }
-                throw RuntimeError(name, "Undefined variable '" + name.getLexeme() + "'.");
-            }
+            return environment->getAt(distance, name.getLexeme());
         } else {
             return globals->getValue(name);
         }
@@ -374,8 +331,6 @@ public:
         // Restore the previous environment after block execution
         this->environment = previousEnvironment;
     }
-
-    mutable std::shared_ptr<Environment> closureForNestedFunctions = nullptr;
 
     int getEnvironmentDepth() const {
         int depth = 0;
