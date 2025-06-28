@@ -222,6 +222,28 @@ public:
         return lookUpVariable(expr.keyword, expr);
     }
 
+    lox_literal visit(const Super& expr) override {
+        int distance = locals.at(&expr);
+        auto superclass = environment->getAt(distance, "super");
+        
+        // "this" should be in the current execution environment (distance 0)
+        auto instance = environment->getAt(0, "this");
+        
+        auto superclassPtr = std::get<std::shared_ptr<LoxCallable>>(superclass);
+        auto loxClass = std::dynamic_pointer_cast<LoxClass>(superclassPtr);
+        if (!loxClass) {
+            throw RuntimeError(expr.method, "Superclass is not a class.");
+        }
+        
+        auto method = loxClass->findMethod(expr.method.getLexeme());
+        if (!method) {
+            throw RuntimeError(expr.method, "Undefined property '" + expr.method.getLexeme() + "'.");
+        }
+        
+        auto instancePtr = std::get<std::shared_ptr<LoxInstance>>(instance);
+        return method->bind(instancePtr);
+    }
+
     lox_literal visit(const Function& stmt) override {
         // Capture the current environment where the function is declared
         auto function = std::make_shared<LoxFunction>(std::make_shared<Function>(stmt), environment, false);
@@ -257,22 +279,33 @@ public:
                 throw RuntimeError(stmt.name, "Superclass must be a class.");
             }
         }
+
+        environment->define(stmt.name.getLexeme(), std::monostate{});
         
-        // Create a placeholder class to define the name first
-        std::unordered_map<std::string, std::shared_ptr<LoxFunction>> emptyMethods;
-        auto placeholder = LoxClass::create(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), emptyMethods);
-        environment->define(stmt.name.getLexeme(), placeholder);
+        // Save the current environment (where the class name is defined)
+        std::shared_ptr<Environment> classEnvironment = environment;
+        
+        // If there's a superclass, create the super environment
+        if (stmt.superclass) {
+            environment = std::make_shared<Environment>(classEnvironment);
+            environment->define("super", superClassPtr);
+        }
+        
+        // Create the this environment (this is what methods will close over)
+        std::shared_ptr<Environment> methodClosureEnv = std::make_shared<Environment>(environment);
+        methodClosureEnv->define("this", std::monostate{}); // placeholder, will be replaced during binding
         
         std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
         for(const auto& method : stmt.methods) {
-            if (!environment) {
-                throw RuntimeError(method->name, "Internal error: method closure environment expired.");
-            }
-            auto function = std::make_shared<LoxFunction>(method, environment, method->name.getLexeme() == "init");
+            // Methods capture the methodClosureEnv (which has this and potentially super)
+            auto function = std::make_shared<LoxFunction>(method, methodClosureEnv, method->name.getLexeme() == "init");
             methods[method->name.getLexeme()] = function;
         }
         
-        // Replace the placeholder with the real class
+        // Restore the original environment for defining the class
+        environment = classEnvironment;
+        
+        // Create the actual class
         std::shared_ptr<LoxCallable> klass = LoxClass::create(stmt.name.getLexeme(), std::weak_ptr<LoxClass>(superClassPtr), methods);
         environment->define(stmt.name.getLexeme(), klass);
         return std::monostate{};

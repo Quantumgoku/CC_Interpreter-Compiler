@@ -6,7 +6,6 @@
 
 class Expr;
 class ExprVisitorPrint;
-
 class ExprVisitorEval;
 
 class Expr {
@@ -23,6 +22,7 @@ class Grouping;
 class Literal;
 class Logical;
 class Unary;
+class Super;
 class This;
 class Call;
 class Get;
@@ -37,6 +37,7 @@ public:
     virtual void visit(const Literal& expr) const = 0;
     virtual void visit(const Logical& expr) const = 0;
     virtual void visit(const Unary& expr) const = 0;
+    virtual void visit(const Super& expr) const = 0;
     virtual void visit(const This& expr) const = 0;
     virtual void visit(const Call& expr) const = 0;
     virtual void visit(const Get& expr) const = 0;
@@ -53,6 +54,7 @@ public:
     virtual lox_literal visit(const Literal& expr) = 0;
     virtual lox_literal visit(const Logical& expr) = 0;
     virtual lox_literal visit(const Unary& expr) = 0;
+    virtual lox_literal visit(const Super& expr) = 0;
     virtual lox_literal visit(const This& expr) = 0;
     virtual lox_literal visit(const Call& expr) = 0;
     virtual lox_literal visit(const Get& expr) = 0;
@@ -114,6 +116,15 @@ public:
     lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
     Token op;
     std::shared_ptr<Expr> right;
+};
+
+class Super : public Expr {
+public:
+    Super(Token keyword, Token method) : keyword(keyword), method(method) {}
+    void accept(const ExprVisitorPrint& visitor) const override { visitor.visit(*this); }
+    lox_literal accept(ExprVisitorEval& visitor) const override { return visitor.visit(*this); }
+    Token keyword;
+    Token method;
 };
 
 class This : public Expr {

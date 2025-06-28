@@ -6,11 +6,11 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
     // Create a new environment for function execution, with closure as parent
     auto environment = std::make_shared<Environment>(closure);
 
-    // Add 'this' for bound methods
+    // For bound methods, add 'this' to the execution environment (distance 0)
     if (boundInstance) {
         environment->define("this", boundInstance);
     }
-    
+
     // Add parameters to function environment
     for (size_t i = 0; i < declaration->params.size(); ++i) {
         environment->define(declaration->params[i].getLexeme(), arguments[i]);
@@ -27,7 +27,7 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
         }
     } catch (const ReturnException& returnValue) {
         if (isInitializer) {
-            // Always return 'this' from the environment
+            // Always return 'this' from the execution environment
             return environment->getAt(0, "this");
         }
         return returnValue.getValue();
@@ -40,8 +40,10 @@ lox_literal LoxFunction::call(Interpreter& interpreter, const std::vector<lox_li
 }
 
 std::shared_ptr<LoxFunction> LoxFunction::bind(const std::shared_ptr<LoxInstance>& instance) const {
-    // Don't create an extra environment level - just store the instance for later injection
+    // Get the unbound function
     auto orig = getUnbound();
+    
+    // Create a bound function that stores the instance for injection during call
     auto boundFunction = std::make_shared<LoxFunction>(orig->declaration, orig->closure, orig->isInitializer, orig);
     boundFunction->boundInstance = instance;
     return boundFunction;

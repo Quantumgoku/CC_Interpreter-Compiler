@@ -458,6 +458,12 @@ private:
         if(match({TokenType::THIS})){
             return std::make_shared<This>(previous());
         } 
+        if(match({TokenType::SUPER})){
+            Token keyword = previous();
+            try_consume(TokenType::DOT, "Expect '.' after 'super'.");
+            Token method = try_consume(TokenType::IDENTIFIER, "Expect superclass method name.");
+            return std::make_shared<Super>(keyword, method);
+        }
         if(match({TokenType::IDENTIFIER})){
             return std::make_shared<Variable>(previous());
         }else{

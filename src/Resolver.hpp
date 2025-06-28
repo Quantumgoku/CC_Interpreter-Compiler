@@ -21,7 +21,8 @@ enum class FunctionType {
 
 enum class ClassType {
     NONE,
-    CLASS
+    CLASS,
+    SUBCLASS
 };
 
 class Resolver : public ExprVisitorEval, public StmtVisitorEval {
@@ -106,6 +107,16 @@ public:
         return std::monostate{};
     }
 
+    lox_literal visit(const Super& expr) override {
+        if (currentClass == ClassType::NONE) {
+            throw RuntimeError(expr.keyword, "Can't use 'super' outside of a class.");
+        } else if (currentClass != ClassType::SUBCLASS) {
+            throw RuntimeError(expr.keyword, "Can't use 'super' in a class with no superclass.");
+        }
+        resolveLocal(expr, expr.keyword);
+        return std::monostate{};
+    }
+
     lox_literal visit(const Var& stmt) override {
         declare(stmt.name);
         if (stmt.initializer != nullptr) {
@@ -163,8 +174,12 @@ public:
     lox_literal visit(const Class& stmt) override {
         ClassType enclosingClass = currentClass;
         currentClass = ClassType::CLASS;
+        
         declare(stmt.name);
+        define(stmt.name);
+        
         if (stmt.superclass.has_value()) {
+            currentClass = ClassType::SUBCLASS;
             auto ptr = stmt.superclass.value();
             if (ptr) {
                 auto var = std::dynamic_pointer_cast<Variable>(ptr);
@@ -173,9 +188,14 @@ public:
                 }
                 resolve(*ptr);
             }
+            
+            beginScope();
+            scopes.back()["super"] = true;
         }
-        define(stmt.name);
-        // Don't create a separate scope for the class - methods will handle 'this' binding
+        
+        beginScope();
+        scopes.back()["this"] = true;
+        
         for( const auto& method : stmt.methods) {
             FunctionType declaration = FunctionType::METHOD;
             if(method->name.getLexeme() == "init") {
@@ -183,6 +203,13 @@ public:
             }
             resolveFunction(*method, declaration);
         }
+        
+        endScope();
+        
+        if (stmt.superclass.has_value()) {
+            endScope();
+        }
+        
         currentClass = enclosingClass;
         return std::monostate{};
     }

@@ -96,6 +96,10 @@ public:
         oss << "(this)";
     }
 
+    void visit(const Super& expr) const override {
+        oss << "(super " << expr.method.getLexeme() << ")";
+    }
+
 private:
     mutable std::ostringstream oss;
 
