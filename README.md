@@ -279,12 +279,6 @@ The implementation includes comprehensive tests for:
 - Closures with captured variables
 - Edge cases with super in closures
 
-Test files:
-- `test_simple_super.lox`: Basic super functionality
-- `test_super_complete.lox`: Comprehensive inheritance tests
-- `test_super_closure.lox`: Super in closures
-- `test_complex_super.lox`: Multi-level inheritance
-- `test_codecrafters_case.lox`: CodeCrafters edge case
 
 ## Contributing
 
@@ -301,27 +295,3 @@ Key design principles:
 This implementation is provided for educational purposes, following the concepts from "Crafting Interpreters" by Robert Nystrom.
 
 ---
-
-## Original CodeCrafters Information
-
-# Passing the first stage
-
-The entry point for your program is in `src/main.cpp`. Study and uncomment the
-relevant code, and push your changes to pass the first stage:
-
-```sh
-git commit -am "pass 1st stage" # any msg
-git push origin master
-```
-
-Time to move on to the next stage!
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `cmake` installed locally
-2. Run `./your_program.sh` to run your program, which is implemented in
-   `src/main.cpp`.
-3. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
