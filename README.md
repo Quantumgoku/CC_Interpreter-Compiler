@@ -2,7 +2,7 @@
 
 A complete implementation of the Lox programming language interpreter in C++, following the "Crafting Interpreters" book by Robert Nystrom. This implementation supports all language features including classes, inheritance, closures, and advanced scoping semantics.
 
-[Link to Deep Wiki Page](https://deepwiki.com/Quantumgoku/CC_Interpreter-Compiler)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Quantumgoku/CC_Interpreter-Compiler)
 
 ## Features
 
